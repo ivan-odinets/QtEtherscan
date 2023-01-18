@@ -2,8 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2015 Moritz Sternemann
- * Copyright (C) 2021-2022 IvanOdinets
+ * Copyright (C) 2022-2023 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,28 +24,27 @@
 
 #include <QCoreApplication>
 
-#include <QCoreApplication>
-#include <QTimer>
 #include <QDebug>
-
+#include <QTimer>
 #include <QThread>
+
 #include "QtEtherscan.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    QtEtherscan etherscan;
-    etherscan.setEtheriumNetwork(QtEtherscan::Mainnet);
+    QtEtherscan::API etherscan;
+    etherscan.setEtheriumNetwork(QtEtherscan::API::Mainnet);
     etherscan.setRequestTimeout(2000);
 
     //Giving wrong argument
-    EtherBalance balance = etherscan.getEtherBalance("AAAA0x0x0x0x0x");
-    if (etherscan.errorCode() == QtEtherscan::NoError) {
+    QtEtherscan::EtherBalance balance = etherscan.getEtherBalance("AAAA0x0x0x0x0x");
+    if (etherscan.errorCode() == QtEtherscan::API::NoError) {
         qDebug() << "Continuing making problems";
-    } else if (etherscan.errorCode() == QtEtherscan::InvalidAddressFormatError ){
+    } else if (etherscan.errorCode() == QtEtherscan::API::InvalidAddressFormatError ){
         qDebug() << "AAAA0x0x0x0x0x is not etherium address";
-    } else if (etherscan.errorCode() == QtEtherscan::NetworkError) {
+    } else if (etherscan.errorCode() == QtEtherscan::API::NetworkError) {
         qDebug() << "Some network error occured...";
     }
 
@@ -55,10 +53,10 @@ int main(int argc, char *argv[])
 
     //To many requests per second
     for (int i = 0; i < 100; i++) {
-        EtherBalance balance = etherscan.getEtherBalance("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae");
-        if (etherscan.errorCode() == QtEtherscan::NoError) {
+        QtEtherscan::EtherBalance balance = etherscan.getEtherBalance("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae");
+        if (etherscan.errorCode() == QtEtherscan::API::NoError) {
             qDebug() << "Recieved balance: "<<balance;
-        } else if (etherscan.errorCode() == QtEtherscan::MaxRateError) {
+        } else if (etherscan.errorCode() == QtEtherscan::API::MaxRateError) {
             qDebug() << "Too many requests, time to stop...";
             break;
         } else {

@@ -22,30 +22,18 @@
  *
  */
 
-#include <QCoreApplication>
-#include <QDebug>
+#include "./block.h"
 
-#include "QtEtherscan.h"
+namespace QtEtherscan {
 
-#define TOKEN "YOUR TOKEN HERE"
+Block::Block() :
+    m_blockNumber(InvalidBlockNumber)
+{}
 
-int main(int argc, char *argv[])
-{
-    QCoreApplication a(argc, argv);
+Block::Block(const QJsonObject& jsonObject) :
+    m_blockNumber(jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toLong()),
+    m_timeStamp(QDateTime::fromSecsSinceEpoch(jsonObject.value("timeStamp").toString().toLongLong())),
+    m_blockReward(jsonObject.value("blockReward").toObject())
+{}
 
-    QtEtherscan::API etherscan;
-
-    etherscan.setApiKey(TOKEN);
-    etherscan.setEtheriumNetwork(QtEtherscan::API::Mainnet);
-    QtEtherscan::EtherBalance balance = etherscan.getEtherBalance("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae");
-    qDebug() << balance;
-
-    qDebug() << "Multimple accounts:";
-    QtEtherscan::AccountBalanceList accounts = etherscan.getEtherBalance(
-        { "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae","0x63a9975ba31b0b9626b34300f7f627147df1f526"});
-
-    foreach (auto balance, accounts)
-        qDebug() << balance;
-
-    return a.exec();
-}
+} //namespace QtEtherscan

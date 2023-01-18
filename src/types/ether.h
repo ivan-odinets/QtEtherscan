@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2021-2022 IvanOdinets
+ * Copyright (C) 2022-2023 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -22,39 +22,51 @@
  *
  */
 
-#ifndef ETHERBALANCE_H
-#define ETHERBALANCE_H
+#ifndef ETHER_H
+#define ETHER_H
 
 #include <QJsonValue>
+#include <QJsonObject>
 
-class EtherBalance
+namespace QtEtherscan {
+
+class Ether
 {
 public:
-    EtherBalance() {}
-    EtherBalance(const QString& weiString) :
+    Ether() {}
+    Ether(const QString& weiString) :
         m_weiString(weiString) {}
-    EtherBalance(const QJsonValue& jsonValue) :
-        EtherBalance(jsonValue.toString()) {}
+    Ether(const QJsonValue& jsonValue) :
+        Ether(jsonValue.toString()) {}
+
+    bool      isValid() const     { return !m_weiString.isEmpty(); }
 
     /*! @brief This method returns this EtheriumBalance in Wei */
-    double wei() const   { return m_weiString.toDouble(); }
+    double    wei() const         { return m_weiString.toDouble(); }
+
+    /*! @brief This method can be used to get a string representation of EtheriumBalance in Wei */
+    QString   weiString() const   { return m_weiString; }
 
     /*! @brief This method returns this EtheriumBalance in Eth */
-    double eth() const   { return m_weiString.toDouble() / 1000000000000000000.0; }
+    double    eth() const         { return m_weiString.toDouble() / 1000000000000000000.0; }
 
     /*! @brief This method returns this EtheriumBalance in Szabo */
-    double szabo() const { return m_weiString.toDouble() / 1000000000000.0; }
+    double    szabo() const       { return m_weiString.toDouble() / 1000000000000.0; }
 
 private:
-    QString m_weiString;
+    QString   m_weiString;
 };
 
-inline QDebug operator<< (QDebug dbg, const EtherBalance& etherBalance)
+inline QDebug operator<< (QDebug dbg, const Ether& ether)
 {
-    dbg.nospace() << qUtf8Printable(QString("EtherBalance(eth=%1 ETH)")
-                                    .arg(etherBalance.eth()));
+    dbg.nospace() << qUtf8Printable(QString("Ether(eth=%1 ETH)")
+                                    .arg(ether.eth()));
 
     return dbg.maybeSpace();
 }
 
-#endif // ETHERBALANCE_H
+typedef Ether EtherBalance;
+
+} //namespace QtEtherscan
+
+#endif // ETHER_H

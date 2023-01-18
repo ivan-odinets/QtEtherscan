@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2023 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -22,42 +22,43 @@
  *
  */
 
-#include "networking.h"
+#ifndef NODESCOUNT_H
+#define NODESCOUNT_H
 
-#include <QEventLoop>
-#include <QNetworkReply>
-#include <QTimer>
-#include <QUrlQuery>
+#include <QJsonObject>
+#include <QJsonValue>
 
 namespace QtEtherscan {
 
-Networking::Networking(QObject* parent) :
-    QObject(parent),m_timeout(0)
-{}
-
-QByteArray Networking::request(const QUrlQuery& query)
+class NodesCount
 {
-    QNetworkRequest req;
-    QUrl url(m_host);
-    url.setQuery(query);
-    req.setUrl(url);
+public:
+    static quint32 constexpr InvalidCount = 0;
 
-    QEventLoop waitLoop;
+    NodesCount();
+    NodesCount(const QJsonObject& jsonObject);
+    NodesCount(const QJsonValue& jsonValue) :
+        NodesCount(jsonValue.toObject()) {}
 
-    if (m_timeout != 0)
-        QTimer::singleShot(m_timeout,&waitLoop,&QEventLoop::quit);
+    bool      isValid() const          { return m_totalNodeCount != InvalidCount; }
 
-    QNetworkReply *reply = m_nam.get(req);
-    QObject::connect(reply, &QNetworkReply::finished, &waitLoop, &QEventLoop::quit);
+    QDate     utcDate() const          { return m_utcDate; }
+    quint32   totalNodeCount() const   { return m_totalNodeCount; }
 
-    waitLoop.exec();
-    if (reply->isRunning())
-        reply->abort();
+private:
+    quint32   m_totalNodeCount;
+    QDate     m_utcDate;
+};
 
-    QByteArray result = reply->readAll();
+inline QDebug operator<< (QDebug dbg, const NodesCount& nodesCount)
+{
+    dbg.nospace() << qUtf8Printable(QString("NodesCount(utcDate=%1; totalNodeCount=%2)")
+                                    .arg(nodesCount.utcDate().toString())
+                                    .arg(nodesCount.totalNodeCount()));
 
-    reply->deleteLater();
-    return result;
+    return dbg.maybeSpace();
 }
 
 } //namespace QtEtherscan
+
+#endif // NODESCOUNT_H

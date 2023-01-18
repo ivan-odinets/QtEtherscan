@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2021-2022 IvanOdinets
+ * Copyright (C) 2022-2023 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -22,15 +22,13 @@
  *
  */
 
-#include "accountbalance.h"
+#include "./accountbalance.h"
+
+namespace QtEtherscan {
 
 AccountBalance::AccountBalance(const QJsonObject& jsonObject) :
-    m_account(jsonObject.value("account").toString()),
-    m_balance(jsonObject.value("balance").toString())
+    m_account(jsonObject.value("account").toString(QString())),
+    m_balance(jsonObject.value("balance").toString(QString()))
 {}
 
-AccountBalanceList::AccountBalanceList(const QJsonArray& jsonArray)
-{
-    foreach (const QJsonValue& jsonValue, jsonArray)
-        this->append(AccountBalance(jsonValue.toObject()));
-}
+} //namespace QtEtherscan

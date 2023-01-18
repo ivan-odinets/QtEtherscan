@@ -22,30 +22,18 @@
  *
  */
 
-#include <QCoreApplication>
-#include <QDebug>
+#include "./contractexecutionstatus.h"
 
-#include "QtEtherscan.h"
+namespace QtEtherscan {
 
-#define TOKEN "YOUR TOKEN HERE"
+ContractExecutionStatus::ContractExecutionStatus() :
+    m_isError(false),
+    m_errDescription(QString())
+{}
 
-int main(int argc, char *argv[])
-{
-    QCoreApplication a(argc, argv);
+ContractExecutionStatus::ContractExecutionStatus(const QJsonObject& jsonObject) :
+    m_isError(jsonObject.value("isError").toString() == QLatin1String("1")),
+    m_errDescription(jsonObject.value("errDescription").toString())
+{}
 
-    QtEtherscan::API etherscan;
-
-    etherscan.setApiKey(TOKEN);
-    etherscan.setEtheriumNetwork(QtEtherscan::API::Mainnet);
-    QtEtherscan::EtherBalance balance = etherscan.getEtherBalance("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae");
-    qDebug() << balance;
-
-    qDebug() << "Multimple accounts:";
-    QtEtherscan::AccountBalanceList accounts = etherscan.getEtherBalance(
-        { "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae","0x63a9975ba31b0b9626b34300f7f627147df1f526"});
-
-    foreach (auto balance, accounts)
-        qDebug() << balance;
-
-    return a.exec();
-}
+} //namespace QtEtherscan

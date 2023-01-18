@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2021-2022 IvanOdinets
+ * Copyright (C) 2022-2023 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -30,6 +30,8 @@
 #include <QNetworkProxy>
 #include <QNetworkAccessManager>
 
+namespace QtEtherscan {
+
 /*!
  * @class Networking networking.h
  * @brief This class a bit simplifies communication with Etherscan API servers.
@@ -40,12 +42,12 @@ class Networking : public QObject
 {
     Q_OBJECT
 protected:
-    friend class QtEtherscan;
+    friend class API;
 
     explicit Networking(QObject* parent = nullptr);
     ~Networking() {}
 
-    void setApiHost(const QString& host) { m_host = host; }
+    void           setApiHost(const QString& host)         { m_host = host; }
 
     QByteArray     request(const QUrlQuery& params);
 
@@ -60,5 +62,7 @@ private:
     QString                  m_host;
     quint32                  m_timeout;
 };
+
+} //namespace QtEtherscan
 
 #endif // NETWORKING_H

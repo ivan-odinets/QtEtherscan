@@ -22,30 +22,35 @@
  *
  */
 
-#include <QCoreApplication>
-#include <QDebug>
+#include "./gasoracle.h"
 
-#include "QtEtherscan.h"
+namespace QtEtherscan {
 
-#define TOKEN "YOUR TOKEN HERE"
+GasOracle::GasOracle() :
+    m_lastBlock(InvalidBlockNumber),
+    m_safeGasPrice(0),
+    m_proposedGasPrice(0),
+    m_fastGasPrice(0),
+    m_suggestedBaseFee(0)
+{}
 
-int main(int argc, char *argv[])
+GasOracle::GasOracle(const QJsonObject& jsonObject) :
+    m_lastBlock(jsonObject.value("LastBlock").toString(InvalidBlockNumberString).toLong()),
+    m_safeGasPrice(jsonObject.value("SafeGasPrice").toString().toInt()),
+    m_proposedGasPrice(jsonObject.value("ProposeGasPrice").toString().toInt()),
+    m_fastGasPrice(jsonObject.value("FastGasPrice").toString().toInt()),
+    m_suggestedBaseFee(jsonObject.value("suggestBaseFee").toString().toDouble()),
+    m_gasUsedRatioString(jsonObject.value("gasUsedRatio").toString())
+{}
+
+QList<double> GasOracle::gasUsedRatio() const
 {
-    QCoreApplication a(argc, argv);
+    QList<double> result;
 
-    QtEtherscan::API etherscan;
+    foreach (const QString& part, m_gasUsedRatioString.split(","))
+        result.append(part.toDouble());
 
-    etherscan.setApiKey(TOKEN);
-    etherscan.setEtheriumNetwork(QtEtherscan::API::Mainnet);
-    QtEtherscan::EtherBalance balance = etherscan.getEtherBalance("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae");
-    qDebug() << balance;
-
-    qDebug() << "Multimple accounts:";
-    QtEtherscan::AccountBalanceList accounts = etherscan.getEtherBalance(
-        { "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae","0x63a9975ba31b0b9626b34300f7f627147df1f526"});
-
-    foreach (auto balance, accounts)
-        qDebug() << balance;
-
-    return a.exec();
+    return result;
 }
+
+} //namespace QtEtherscan

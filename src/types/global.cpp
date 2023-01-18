@@ -22,30 +22,6 @@
  *
  */
 
-#include <QCoreApplication>
-#include <QDebug>
+#include "./global.h"
 
-#include "QtEtherscan.h"
 
-#define TOKEN "YOUR TOKEN HERE"
-
-int main(int argc, char *argv[])
-{
-    QCoreApplication a(argc, argv);
-
-    QtEtherscan::API etherscan;
-
-    etherscan.setApiKey(TOKEN);
-    etherscan.setEtheriumNetwork(QtEtherscan::API::Mainnet);
-    QtEtherscan::EtherBalance balance = etherscan.getEtherBalance("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae");
-    qDebug() << balance;
-
-    qDebug() << "Multimple accounts:";
-    QtEtherscan::AccountBalanceList accounts = etherscan.getEtherBalance(
-        { "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae","0x63a9975ba31b0b9626b34300f7f627147df1f526"});
-
-    foreach (auto balance, accounts)
-        qDebug() << balance;
-
-    return a.exec();
-}

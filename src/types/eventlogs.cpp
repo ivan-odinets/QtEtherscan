@@ -22,42 +22,27 @@
  *
  */
 
-#include "networking.h"
-
-#include <QEventLoop>
-#include <QNetworkReply>
-#include <QTimer>
-#include <QUrlQuery>
+#include "./eventlogs.h"
 
 namespace QtEtherscan {
 
-Networking::Networking(QObject* parent) :
-    QObject(parent),m_timeout(0)
+EventLog::EventLog() :
+    m_blockNumber(InvalidBlockNumber)
 {}
 
-QByteArray Networking::request(const QUrlQuery& query)
+EventLog::EventLog(const QJsonObject& jsonObject) :
+    m_address(jsonObject.value("address").toString()),
+    m_dataString(jsonObject.value("data").toString()),
+    m_blockNumber(jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toLong(nullptr,0)),
+    m_timeStamp(QDateTime::fromSecsSinceEpoch(jsonObject.value("timeStamp").toString().toLongLong(nullptr,0))),
+    m_gasPrice(jsonObject.value("gasPrice").toString().toLong(nullptr,0)),
+    m_gasUsed(jsonObject.value("gasUsed").toString().toLong(nullptr,0)),
+    m_logIndexString(jsonObject.value("logIndex").toString()),
+    m_transactionHash(jsonObject.value("transactionHash").toString()),
+    m_transactionIndexString(jsonObject.value("transactionIndex").toString())
 {
-    QNetworkRequest req;
-    QUrl url(m_host);
-    url.setQuery(query);
-    req.setUrl(url);
-
-    QEventLoop waitLoop;
-
-    if (m_timeout != 0)
-        QTimer::singleShot(m_timeout,&waitLoop,&QEventLoop::quit);
-
-    QNetworkReply *reply = m_nam.get(req);
-    QObject::connect(reply, &QNetworkReply::finished, &waitLoop, &QEventLoop::quit);
-
-    waitLoop.exec();
-    if (reply->isRunning())
-        reply->abort();
-
-    QByteArray result = reply->readAll();
-
-    reply->deleteLater();
-    return result;
+    foreach (const QJsonValue& value, jsonObject.value("topics").toArray())
+        m_topics.append(value.toString());
 }
 
 } //namespace QtEtherscan

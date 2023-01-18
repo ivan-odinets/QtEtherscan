@@ -22,51 +22,53 @@
  *
  */
 
-#ifndef ACCOUNTBALANCE_H
-#define ACCOUNTBALANCE_H
+#ifndef BLOCK_H
+#define BLOCK_H
 
 #include "./ether.h"
 #include "./global.h"
 
 namespace QtEtherscan {
 
-class AccountBalance
+class Block
 {
 public:
-    AccountBalance() {}
-    AccountBalance(const QJsonObject& jsonObject);
-    AccountBalance(const QJsonValue& jsonValue) :
-        AccountBalance(jsonValue.toObject()) {}
+    Block();
+    Block(const QJsonObject& jsonObject);
+    Block(const QJsonValue& jsonValue) :
+        Block(jsonValue.toObject()) {}
 
-    bool      isValid() const     { return m_account.isEmpty(); }
+    bool      isValid() const     { return m_blockNumber != InvalidBlockNumber; }
 
-    QString   account() const     { return m_account; }
-    Ether     balance() const     { return m_balance; }
+    qint32    blockNumber() const { return m_blockNumber; }
+    QDateTime timeStamp() const   { return m_timeStamp; }
+    Ether     blockReward() const { return m_blockReward; }
 
 private:
-    QString   m_account;
-    Ether     m_balance;
+    qint32    m_blockNumber;
+    QDateTime m_timeStamp;
+    Ether     m_blockReward;
 };
 
-inline QDebug operator<< (QDebug dbg, const AccountBalance& accountBalance)
+inline QDebug operator<< (QDebug dbg, const Block& block)
 {
-    dbg.nospace() << qUtf8Printable(QString("AccountBalance(account=%1; balance.eth()=%2 ETH)")
-                                    .arg(accountBalance.account())
-                                    .arg(accountBalance.balance().eth()));
+    dbg.nospace() << qUtf8Printable(QString("Block(blockNumber=%1; timeStamp=%2)")
+                                    .arg(block.blockNumber())
+                                    .arg(block.timeStamp().toString()));
 
     return dbg.maybeSpace();
 }
 
-typedef JsonObjectsList<AccountBalance> AccountBalanceList;
+typedef JsonObjectsList<Block> BlockList;
 
-inline QDebug operator<< (QDebug dbg, const AccountBalanceList& accountBalanceList)
+inline QDebug operator<<(QDebug dbg, const BlockList& blockList)
 {
-    qUtf8Printable(QString("AccountBalanceList(count=%1)")
-                   .arg(accountBalanceList.count()));
+    dbg.nospace() << qUtf8Printable(QString("BlockList(blockList.count()=%1)")
+                                    .arg(blockList.count()));
 
-        return dbg.maybeSpace();
+    return dbg.maybeSpace();
 }
 
 } //namespace QtEtherscan
 
-#endif // ACCOUNTBALANCE_H
+#endif // BLOCK_H

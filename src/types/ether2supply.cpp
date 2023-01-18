@@ -1,25 +1,35 @@
 /*
  **********************************************************************************************************************
  *
- * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * QtTelegramBot
+ * Copyright (C) 2023 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
- * QtEtherscan is free software; you can redistribute it and/or
+ * QtTelegramBot is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * QtEtherscan  is distributed in the hope that it will be useful,
+ * QtTelegramBot  is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with QtEtherscan; if not, write to the Free Software Foundation,
+ * along with QtTelegramBot; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
 
-#include "./src/api.h"
+#include "./ether2supply.h"
+
+namespace QtEtherscan {
+
+Ether2Supply::Ether2Supply(const QJsonObject& jsonObject) :
+    m_ethSupply(jsonObject.value("EthSupply").toString()),
+    m_eth2Staking(jsonObject.value("Eth2Staking").toString()),
+    m_burntFees(jsonObject.value("BurntFees").toString())
+{}
+
+} //namespace QtEtherscan
