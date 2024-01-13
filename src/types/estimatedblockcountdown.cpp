@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -34,9 +34,9 @@ EstimatedBlockCountdown::EstimatedBlockCountdown() :
 {}
 
 EstimatedBlockCountdown::EstimatedBlockCountdown(const QJsonObject& jsonObject) :
-    m_currentBlock(jsonObject.value("CurrentBlock").toString(InvalidBlockNumberString).toLong()),
-    m_countdownBlock(jsonObject.value("CountdownBlock").toString().toLong()),
-    m_remainingBlock(jsonObject.value("RemainingBlock").toString().toLong()),
+    m_currentBlock(jsonObject.value("CurrentBlock").toString(InvalidBlockNumberString).toInt()),
+    m_countdownBlock(jsonObject.value("CountdownBlock").toString(InvalidBlockNumberString).toInt()),
+    m_remainingBlock(jsonObject.value("RemainingBlock").toString(InvalidBlockNumberString).toInt()),
     m_estimateTimeInSec(jsonObject.value("EstimateTimeInSec").toString().toDouble())
 {}
 

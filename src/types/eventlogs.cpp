@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -27,21 +27,25 @@
 namespace QtEtherscan {
 
 EventLog::EventLog() :
-    m_blockNumber(InvalidBlockNumber)
+    m_blockNumber(InvalidBlockNumber),
+    m_timeStamp(0),
+    m_gasPrice(0),
+    m_gasUsed(0)
 {}
 
 EventLog::EventLog(const QJsonObject& jsonObject) :
     m_address(jsonObject.value("address").toString()),
     m_dataString(jsonObject.value("data").toString()),
-    m_blockNumber(jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toLong(nullptr,0)),
-    m_timeStamp(QDateTime::fromSecsSinceEpoch(jsonObject.value("timeStamp").toString().toLongLong(nullptr,0))),
-    m_gasPrice(jsonObject.value("gasPrice").toString().toLong(nullptr,0)),
-    m_gasUsed(jsonObject.value("gasUsed").toString().toLong(nullptr,0)),
+    m_blockNumber(jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toInt(nullptr,0)),
+    m_blockHash(jsonObject.value("blockHash").toString()),
+    m_timeStamp(jsonObject.value("timeStamp").toString().toLongLong(nullptr,0)),
+    m_gasPrice(jsonObject.value("gasPrice").toString().toULongLong(nullptr,0)),
+    m_gasUsed(jsonObject.value("gasUsed").toString().toULongLong(nullptr,0)),
     m_logIndexString(jsonObject.value("logIndex").toString()),
     m_transactionHash(jsonObject.value("transactionHash").toString()),
     m_transactionIndexString(jsonObject.value("transactionIndex").toString())
 {
-    foreach (const QJsonValue& value, jsonObject.value("topics").toArray())
+    for (const QJsonValue& value : jsonObject.value("topics").toArray())
         m_topics.append(value.toString());
 }
 

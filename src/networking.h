@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -32,11 +32,9 @@
 
 namespace QtEtherscan {
 
-/*!
- * @class Networking networking.h
- * @brief This class a bit simplifies communication with Etherscan API servers.
- *        For internal use only
- */
+/*! @class Networking networking.h
+ *  @brief This class a bit simplifies communication with Etherscan API servers.
+ *         For internal use only */
 
 class Networking : public QObject
 {

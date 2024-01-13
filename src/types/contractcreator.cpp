@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -22,6 +22,17 @@
  *
  */
 
-#include "./global.h"
+#include "contractcreator.h"
 
+namespace QtEtherscan {
 
+ContractCreator::ContractCreator()
+{}
+
+ContractCreator::ContractCreator(const QJsonObject& jsonObject) :
+    m_contractAddress(jsonObject.value("contractAddress").toString()),
+    m_contractCreator(jsonObject.value("contractCreator").toString()),
+    m_txHash(jsonObject.value("txHash").toString())
+{}
+
+} //namespace QtEtherscan

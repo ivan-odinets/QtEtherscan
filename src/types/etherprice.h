@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtTelegramBot
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -28,30 +28,37 @@
 #include <QJsonObject>
 #include <QJsonValue>
 
+#include "./constants.h"
+
 namespace QtEtherscan {
+
+/*! @class EtherPrice src/types/etherprice.h
+ *  @brief Object of this type is returned by API::getEtherLastPrice method.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/stats-1#get-ether-last-price */
 
 class EtherPrice
 {
 public:
-    static double constexpr InvalidPrice = -1;
-
     EtherPrice();
     EtherPrice(const QJsonObject& jsonObject);
     EtherPrice(const QJsonValue& jsonValue) :
         EtherPrice(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this EtherPrice object is valid and contains reasonable information. EtherPrice object is
+     *         considered to be valid if ethBtc() and ethUsd() are containing anything but not -1. */
     bool      isValid() const          { return ( (m_ethBtc != InvalidPrice) && (m_ethUsd != InvalidPrice) ); }
 
     double    ethBtc() const           { return m_ethBtc; }
-    QDateTime ethBtcTimeStamp() const  { return m_ethBtcTimeStamp; }
+    QDateTime ethBtcTimeStamp() const  { return QDateTime::fromSecsSinceEpoch(m_ethBtcTimeStamp); }
     double    ethUsd() const           { return m_ethUsd; }
-    QDateTime ethUsdTimeStamp() const  { return m_ethUsdTimeStamp; }
+    QDateTime ethUsdTimeStamp() const  { return QDateTime::fromSecsSinceEpoch(m_ethUsdTimeStamp); }
 
 private:
     double    m_ethBtc;
-    QDateTime m_ethBtcTimeStamp;
+    qint64    m_ethBtcTimeStamp;
     double    m_ethUsd;
-    QDateTime m_ethUsdTimeStamp;
+    qint64    m_ethUsdTimeStamp;
 };
 
 inline QDebug operator<< (QDebug dbg, const EtherPrice& etherPrice)

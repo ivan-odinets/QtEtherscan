@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,10 +25,20 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+#include <QDebug>
+#include <QJsonObject>
+
 #include "./ether.h"
-#include "./global.h"
+#include "./constants.h"
+#include "./jsonobjectslist.h"
 
 namespace QtEtherscan {
+
+/*! @class Block src/types/block.h
+ *  @brief A list of such objects is returned by API::getListOfBlocksMinedByAddress (deprecated, will be removed) and
+ *         API::getListOfBlocksValidatedByAddress methods.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-list-of-blocks-validated-by-address */
 
 class Block
 {
@@ -38,15 +48,17 @@ public:
     Block(const QJsonValue& jsonValue) :
         Block(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this Block object is valid and contains reasonable information. Block object is considered
+     *         to be valid if blockNumber() contains anything but not -1. */
     bool      isValid() const     { return m_blockNumber != InvalidBlockNumber; }
 
     qint32    blockNumber() const { return m_blockNumber; }
-    QDateTime timeStamp() const   { return m_timeStamp; }
+    QDateTime timeStamp() const   { return QDateTime::fromSecsSinceEpoch(m_timeStamp); }
     Ether     blockReward() const { return m_blockReward; }
 
 private:
     qint32    m_blockNumber;
-    QDateTime m_timeStamp;
+    qint64    m_timeStamp;
     Ether     m_blockReward;
 };
 
@@ -59,11 +71,18 @@ inline QDebug operator<< (QDebug dbg, const Block& block)
     return dbg.maybeSpace();
 }
 
+/*! @typedef BlockList src/types/block.h
+ *  @brief This is a list of Block objects. It is returned by API::getListOfBlocksMinedByAddress (deprecated, will be
+ *         removed) and API::getListOfBlocksValidatedByAddress methods. Nothing more than a QList with some extra constructors
+ *         (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-list-of-blocks-validated-by-address */
+
 typedef JsonObjectsList<Block> BlockList;
 
 inline QDebug operator<<(QDebug dbg, const BlockList& blockList)
 {
-    dbg.nospace() << qUtf8Printable(QString("BlockList(blockList.count()=%1)")
+    dbg.nospace() << qUtf8Printable(QString("BlockList(count=%1)")
                                     .arg(blockList.count()));
 
     return dbg.maybeSpace();

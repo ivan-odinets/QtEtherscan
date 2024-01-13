@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtTelegramBot
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -29,7 +29,8 @@ namespace QtEtherscan {
 Ether2Supply::Ether2Supply(const QJsonObject& jsonObject) :
     m_ethSupply(jsonObject.value("EthSupply").toString()),
     m_eth2Staking(jsonObject.value("Eth2Staking").toString()),
-    m_burntFees(jsonObject.value("BurntFees").toString())
+    m_burntFees(jsonObject.value("BurntFees").toString()),
+    m_withdrawnTotal(jsonObject.value("WithdrawnTotal").toString())
 {}
 
 } //namespace QtEtherscan

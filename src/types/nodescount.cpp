@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -27,11 +27,11 @@
 namespace QtEtherscan {
 
 NodesCount::NodesCount() :
-    m_totalNodeCount(InvalidCount)
+    m_totalNodeCount(InvalidNodeCount)
 {}
 
 NodesCount::NodesCount(const QJsonObject& jsonObject) :
-    m_totalNodeCount(jsonObject.value("TotalNodeCount").toString(QLatin1String("0")).toULong()),
+    m_totalNodeCount(jsonObject.value("TotalNodeCount").toString().toUInt()),
     m_utcDate(QDate::fromString(jsonObject.value("UTCDate").toString(),Qt::ISODate))
 {}
 

@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,9 +25,19 @@
 #ifndef NODESSIZE_H
 #define NODESSIZE_H
 
-#include "./global.h"
+#include <QDebug>
+#include <QJsonObject>
+
+#include "./constants.h"
+#include "./enums.h"
+#include "./jsonobjectslist.h"
 
 namespace QtEtherscan {
+
+/*! @class ChainSize src/types/nodessize.h
+ *  @brief A list of such objects is returned by API::getEtheriumNodesSize method.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/stats-1#get-ethereum-nodes-size */
 
 class ChainSize
 {
@@ -37,6 +47,8 @@ public:
     ChainSize(const QJsonValue& jsonValue) :
         ChainSize(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this ChainSize object is valid and contains reasonable information. ChainSize object is
+     *         considered to be valid if blockNumber() contains anything but not -1. */
     bool           isValid() const          { return m_blockNumber != InvalidBlockNumber; }
 
     qint32         blockNumber() const      { return m_blockNumber; }
@@ -62,6 +74,12 @@ inline QDebug operator<< (QDebug dbg, const ChainSize& chainSize)
 
     return dbg.maybeSpace();
 }
+
+/*! @typedef NodesSize
+ *  @brief This is a list of ChainSize objects. It is returned by API::getEtheriumNodesSize method. Nothing more than a
+ *         QList with some extra constructors (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/stats-1#get-ethereum-nodes-size */
 
 typedef JsonObjectsList<ChainSize> NodesSize;
 

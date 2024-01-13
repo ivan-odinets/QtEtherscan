@@ -30,6 +30,9 @@
 
 namespace QtEtherscan {
 
+/*! @class Ether src/types/ether.h
+ *  @brief Object of this class represents specific amount of ETH. */
+
 class Ether
 {
 public:

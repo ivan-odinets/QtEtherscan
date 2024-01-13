@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,14 +25,21 @@
 #ifndef EVENTLOGS_H
 #define EVENTLOGS_H
 
-#include <QList>
-#include <QJsonArray>
+#include <QDebug>
 #include <QJsonObject>
-#include <QJsonValue>
 
-#include "./global.h"
+#include "./constants.h"
+#include "./jsonobjectslist.h"
 
 namespace QtEtherscan {
+
+/*! @class EventLog src/types/eventlogs.h
+ *  @brief A list of such objects is returned by API::getEventLogs, API::getEventLogsByTopics and API::getEventLogsByAddressTopics
+ *         methods. Nothing more than a QList with some extra constructors (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-address
+ * @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-topics
+ * @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-address-filtered-by-topics */
 
 class EventLog
 {
@@ -42,13 +49,16 @@ public:
     EventLog(const QJsonValue& jsonValue) :
         EventLog(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this EventLog object is valid and contains reasonable information. EventLog object is considered
+     *         to be valid if blockNumber() contains anything but not -1. */
     bool           isValid() const                    { return m_blockNumber != InvalidBlockNumber; }
 
     QString        address() const                    { return m_address; }
     QStringList    topics() const                     { return m_topics; }
     QString        dataString() const                 { return m_dataString; }
     qint32         blockNumber() const                { return m_blockNumber; }
-    QDateTime      timeStamp() const                  { return m_timeStamp; }
+    QString        blockHash() const                  { return m_blockHash; }
+    QDateTime      timeStamp() const                  { return QDateTime::fromSecsSinceEpoch(m_timeStamp); }
     quint64        gasPrice() const                   { return m_gasPrice; }
     quint64        gasUsed() const                    { return m_gasUsed; }
     QString        logIndexString() const             { return m_logIndexString; }
@@ -60,7 +70,8 @@ private:
     QStringList    m_topics;
     QString        m_dataString;
     qint32         m_blockNumber;
-    QDateTime      m_timeStamp;
+    QString        m_blockHash;
+    qint64         m_timeStamp;
     quint64        m_gasPrice;
     quint64        m_gasUsed;
     QString        m_logIndexString;
@@ -77,6 +88,15 @@ inline QDebug operator<< (QDebug dbg, const EventLog& eventLog)
 
     return dbg.maybeSpace();
 }
+
+/*! @typedef EventLogList src/types/eventlogs.h
+ *  @brief This is a list of EventLog objects. It is returned by API::getEventLogs, API::getEventLogsByTopics and
+ *         API::getEventLogsByAddressTopics methods. Nothing more than a QList with some extra constructors
+ *         (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-address
+ * @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-topics
+ * @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-address-filtered-by-topics */
 
 typedef JsonObjectsList<EventLog> EventLogList;
 

@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -27,13 +27,14 @@
 namespace QtEtherscan {
 
 Block::Block() :
-    m_blockNumber(InvalidBlockNumber)
+    m_blockNumber(InvalidBlockNumber),
+    m_timeStamp(0)
 {}
 
 Block::Block(const QJsonObject& jsonObject) :
     m_blockNumber(jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toLong()),
-    m_timeStamp(QDateTime::fromSecsSinceEpoch(jsonObject.value("timeStamp").toString().toLongLong())),
-    m_blockReward(jsonObject.value("blockReward").toObject())
+    m_timeStamp(jsonObject.value("timeStamp").toString().toLongLong()),
+    m_blockReward(jsonObject.value("blockReward").toString())
 {}
 
 } //namespace QtEtherscan

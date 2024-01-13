@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,9 +25,17 @@
 #ifndef GASORACLE_H
 #define GASORACLE_H
 
-#include "./global.h"
+#include <QDebug>
+#include <QJsonObject>
+
+#include "./constants.h"
 
 namespace QtEtherscan {
+
+/*! @class GasOracle src/types/gasoracle.h
+ *  @brief Object of this class is returned by API::getGasOracle method.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/gas-tracker#get-gas-oracle */
 
 class GasOracle
 {
@@ -37,6 +45,8 @@ public:
     GasOracle(const QJsonValue& jsonValue) :
         GasOracle(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this GasOracle object is valid and contains reasonable information. GasOracle object is considered
+     *         to be valid if lastBlock() contains anything but not -1. */
     bool           isValid() const               { return m_lastBlock != InvalidBlockNumber; }
 
     qint32         lastBlock() const             { return m_lastBlock; }

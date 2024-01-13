@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtTelegramBot
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -28,14 +28,16 @@ namespace QtEtherscan {
 
 EtherPrice::EtherPrice() :
     m_ethBtc(InvalidPrice),
-    m_ethUsd(InvalidPrice)
+    m_ethBtcTimeStamp(0),
+    m_ethUsd(InvalidPrice),
+    m_ethUsdTimeStamp(0)
 {}
 
 EtherPrice::EtherPrice(const QJsonObject& jsonObject) :
     m_ethBtc(jsonObject.value("ethbtc").toString().toDouble()),
-    m_ethBtcTimeStamp(QDateTime::fromSecsSinceEpoch(jsonObject.value("ethbtc_timestamp").toString().toLongLong())),
+    m_ethBtcTimeStamp(jsonObject.value("ethbtc_timestamp").toString().toLongLong()),
     m_ethUsd(jsonObject.value("ethusd").toString().toDouble()),
-    m_ethUsdTimeStamp(QDateTime::fromSecsSinceEpoch(jsonObject.value("ethusd_timestamp").toString().toLongLong()))
+    m_ethUsdTimeStamp(jsonObject.value("ethusd_timestamp").toString().toLongLong())
 {}
 
 } //namespace QtEtherscan

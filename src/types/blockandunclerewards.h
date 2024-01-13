@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,10 +25,20 @@
 #ifndef BLOCKANDUNCLEREWARDS_H
 #define BLOCKANDUNCLEREWARDS_H
 
+#include <QDebug>
+#include <QJsonObject>
+
 #include "./ether.h"
+#include "./constants.h"
+#include "./jsonobjectslist.h"
 #include "./uncle.h"
 
 namespace QtEtherscan {
+
+/*! @class BlockAndUncleRewards src/types/blockandunclerewards.h
+ *  @brief Object of this type is returned by method API::getBlockAndUncleRewards
+ *
+ * @see https://docs.etherscan.io/api-endpoints/blocks#get-block-and-uncle-rewards-by-blockno */
 
 class BlockAndUncleRewards
 {
@@ -38,10 +48,12 @@ public:
     BlockAndUncleRewards(const QJsonValue& jsonValue) :
         BlockAndUncleRewards(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this BlockAndUncleRewards object is valid and contains reasonable information.
+     *         BlockAndUncleRewards object is considered to be valid if blockNumber() contains anything but not -1. */
     bool      isValid() const               { return m_blockNumber != InvalidBlockNumber; }
 
     qint32    blockNumber() const           { return m_blockNumber; }
-    QDateTime timeStamp() const             { return m_timestamp;  }
+    QDateTime timeStamp() const             { return QDateTime::fromSecsSinceEpoch(m_timestamp);  }
     QString   blockMiner() const            { return m_blockMiner; }
     Ether     blockReward() const           { return m_blockReward; }
     UncleList uncles() const                { return m_uncles; }
@@ -49,7 +61,7 @@ public:
 
 private:
     qint32    m_blockNumber;
-    QDateTime m_timestamp;
+    qint64    m_timestamp;
     QString   m_blockMiner;
     Ether     m_blockReward;
     UncleList m_uncles;
@@ -64,7 +76,7 @@ inline QDebug operator<< (QDebug dbg, const BlockAndUncleRewards& blockAndUncleR
                                     .arg(blockAndUncleRewards.blockMiner())
                                     .arg(blockAndUncleRewards.blockReward().wei())
                                     .arg(blockAndUncleRewards.uncles().count())
-                                    .arg(blockAndUncleRewards.uncleInclusionReward().wei()));
+                                    .arg(blockAndUncleRewards.uncleInclusionReward().weiString()));
 
     return dbg.maybeSpace();
 }

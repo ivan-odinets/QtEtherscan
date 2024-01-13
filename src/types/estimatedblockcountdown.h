@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,9 +25,17 @@
 #ifndef ESTIMATEDBLOCKCOUNTDOWN_H
 #define ESTIMATEDBLOCKCOUNTDOWN_H
 
-#include "./global.h"
+#include <QDebug>
+#include <QJsonObject>
+
+#include "./constants.h"
 
 namespace QtEtherscan {
+
+/*! @class EstimatedBlockCountdown src/types/estimatedblockcountdown.h
+ *  @brief Object of this type is returned by API::getEstimatedBlockCountdown method.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/blocks#get-estimated-block-countdown-time-by-blockno */
 
 class EstimatedBlockCountdown
 {
@@ -37,18 +45,20 @@ public:
     EstimatedBlockCountdown(const QJsonValue& jsonValue) :
         EstimatedBlockCountdown(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this EstimatedBlockCountdown object is valid and contains reasonable information.
+     *         EstimatedBlockCountdown object is considered to be valid if currentBlock() contains anything but not -1. */
     bool      isValid() const               { return m_currentBlock != InvalidBlockNumber; }
 
     qint32    currentBlock() const          { return m_currentBlock; }
     qint32    countdownBlock() const        { return m_countdownBlock; }
     qint32    remainingBlock() const        { return m_remainingBlock; }
-    quint64   estimateTimeInSec() const     { return m_estimateTimeInSec; }
+    double    estimateTimeInSec() const     { return m_estimateTimeInSec; }
 
 private:
     qint32    m_currentBlock;
     qint32    m_countdownBlock;
     qint32    m_remainingBlock;
-    quint64   m_estimateTimeInSec;
+    double    m_estimateTimeInSec;
 };
 
 inline QDebug operator<< (QDebug dbg, const EstimatedBlockCountdown& countdown)

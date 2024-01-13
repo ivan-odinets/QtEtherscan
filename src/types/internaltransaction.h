@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,10 +25,21 @@
 #ifndef INTERNALTRANSACTION_H
 #define INTERNALTRANSACTION_H
 
+#include <QDebug>
+#include <QJsonObject>
+
 #include "./ether.h"
-#include "./global.h"
+#include "./constants.h"
+#include "./jsonobjectslist.h"
 
 namespace QtEtherscan {
+
+/*! @class InternalTransaction src/types/internaltransaction.h
+ *  @brief A list of such objects is returned by by group of overloaded API::getListOfInternalTransactions methods.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-internal-transactions-by-address
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-internal-transactions-by-transaction-hash
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-internal-transactions-by-block-range */
 
 class InternalTransaction
 {
@@ -38,10 +49,12 @@ public:
     InternalTransaction(const QJsonValue& jsonValue) :
         InternalTransaction(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this InternalTransaction object is valid and contains reasonable information. InternalTransaction
+     *         object is considered to be valid if blockNumber() contains anything but not -1. */
     bool      isValid() const          { return m_blockNumber != InvalidBlockNumber; }
 
     qint32    blockNumber() const      { return m_blockNumber; }
-    QDateTime timeStamp() const        { return m_timeStamp; }
+    QDateTime timeStamp() const        { return QDateTime::fromSecsSinceEpoch(m_timeStamp); }
     QString   hash() const             { return m_hash; }
     QString   from() const             { return m_from; }
     QString   to() const               { return m_to; }
@@ -57,7 +70,7 @@ public:
 
 private:
     qint32    m_blockNumber;
-    QDateTime m_timeStamp;
+    qint64    m_timeStamp;
     QString   m_hash;
     QString   m_from;
     QString   m_to;
@@ -81,6 +94,14 @@ inline QDebug operator<< (QDebug dbg, const InternalTransaction& transaction)
 
     return dbg.maybeSpace();
 }
+
+/*! @typedef InternalTransactionList src/types/internaltransaction.h
+ *  @brief This is a list of InternalTransaction objects. It is returned by group of overloaded API::getListOfInternalTransactions
+ *         methods. Nothing more than a QList with some extra constructors (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-internal-transactions-by-address
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-internal-transactions-by-transaction-hash
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-internal-transactions-by-block-range */
 
 typedef JsonObjectsList<InternalTransaction> InternalTransactionList;
 

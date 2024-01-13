@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -28,19 +28,26 @@
 #include <QJsonObject>
 #include <QJsonValue>
 
+#include "./constants.h"
+
 namespace QtEtherscan {
+
+/*! @class NodesCount src/types/nodescount.h
+ *  @brief Object of this class is returned by API::getTotalNodesCount
+ *
+ * @see https://docs.etherscan.io/api-endpoints/stats-1#get-total-nodes-count */
 
 class NodesCount
 {
 public:
-    static quint32 constexpr InvalidCount = 0;
-
     NodesCount();
     NodesCount(const QJsonObject& jsonObject);
     NodesCount(const QJsonValue& jsonValue) :
         NodesCount(jsonValue.toObject()) {}
 
-    bool      isValid() const          { return m_totalNodeCount != InvalidCount; }
+    /*! @brief Returns true if this NodesCount object is valid and contains reasonable information. NodesCount object
+     *         is considered to be valid if totalNodeCount() contains anything but not 0. */
+    bool      isValid() const          { return m_totalNodeCount != InvalidNodeCount; }
 
     QDate     utcDate() const          { return m_utcDate; }
     quint32   totalNodeCount() const   { return m_totalNodeCount; }

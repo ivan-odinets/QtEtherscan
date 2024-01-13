@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -22,78 +22,42 @@
  *
  */
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef JSONOBJECTSLIST_H
+#define JSONOBJECTSLIST_H
 
 #include <QList>
 #include <QJsonArray>
-#include <QJsonObject>
 #include <QJsonValue>
-#include <QString>
 
 namespace QtEtherscan {
 
-enum BlockType {
-    BlocksType,
-    UnclesType
-};
-
-enum ClientType {
-    Geth,
-    Parity,
-};
-
-enum Closest {
-    Before,
-    After
-};
-
-enum Sort {
-    Asc,
-    Desc
-};
-
-enum Syncmode {
-    Archive,
-    Default
-};
-
-enum Tag {
-    Earliest,
-    Pending,
-    Latest
-};
-
-static QString tagToString(Tag tag)
-{
-    switch (tag) {
-    case Latest:
-        return QLatin1String("latest");
-    case Pending:
-        return QLatin1String("pending");
-    case Earliest:
-        return QLatin1String("earliest");
-    }
-    Q_ASSERT(false);
-    return QString();
-}
-
-static qint32 constexpr      InvalidBlockNumber       = -1;
-static QLatin1String const   InvalidBlockNumberString = QLatin1String("-1");
+/*! @class JsonObjectsList src/types/jsonobjectslist.h
+ *  @brief This is nothing more but a QList with some extra constructors.
+ *  @details This class is needed to simplify creating collections of objects, which are returned by etherscam.io
+ *           in JSON-serialized form. */
 
 template<class C>
 class JsonObjectsList : public QList<C>
 {
 public:
-    JsonObjectsList() : QList<C>() {}
+    /*! @brief Construct empty JsonObjectList object. */
+    JsonObjectsList() :
+        QList<C>() {}
+
+    /*! @brief Takes QJsonArray as an argument, and populates this JsonObjectsList by JSON-serialized objects stored
+     *         in QJsonArray. */
     JsonObjectsList(const QJsonArray& jsonArray) {
-        foreach (const QJsonValue& jsonValue, jsonArray)
+        for (const QJsonValue& jsonValue : jsonArray)
             this->append(C(jsonValue));
     }
+
+    /*! @brief Takes QJsonValue as an argument, converts it to QJsonArray and populates this JsonObjectsList by
+     *         JSON-serialized objects stored in QJsonArray. If QJsonValue has anything but not QJsonArray - this
+     *         constructor will create empty JsonObjectsList. */
     JsonObjectsList(const QJsonValue& jsonValue) :
         JsonObjectsList(jsonValue.toArray()) {}
 };
 
-}
+} //namespace QtEtherscan
 
-#endif // GLOBAL_H
+#endif // JSONOBJECTSLIST_H

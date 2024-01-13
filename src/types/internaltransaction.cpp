@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -27,12 +27,15 @@
 namespace QtEtherscan {
 
 InternalTransaction::InternalTransaction() :
-    m_blockNumber(InvalidBlockNumber)
+    m_blockNumber(InvalidBlockNumber),
+    m_timeStamp(0),
+    m_gas(0),
+    m_gasUsed(0)
 {}
 
 InternalTransaction::InternalTransaction(const QJsonObject& jsonObject) :
     m_blockNumber(jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toLong()),
-    m_timeStamp(QDateTime::fromSecsSinceEpoch(jsonObject.value("timeStamp").toString().toLongLong())),
+    m_timeStamp(jsonObject.value("timeStamp").toString().toLongLong()),
     m_hash(jsonObject.value("hash").toString()),
     m_from(jsonObject.value("from").toString()),
     m_to(jsonObject.value("to").toString()),
@@ -40,8 +43,8 @@ InternalTransaction::InternalTransaction(const QJsonObject& jsonObject) :
     m_contractAddress(jsonObject.value("contractAddress").toString()),
     m_input(jsonObject.value("input").toString()),
     m_typeString(jsonObject.value("type").toString()),
-    m_gas(jsonObject.value("gas").toString().toDouble()),
-    m_gasUsed(jsonObject.value("gasUsed").toString().toDouble()),
+    m_gas(jsonObject.value("gas").toString().toULongLong()),
+    m_gasUsed(jsonObject.value("gasUsed").toString().toULongLong()),
     m_traceIdString(jsonObject.value("traceId").toString()),
     m_isErrorString(jsonObject.value("isError").toString()),
     m_errCodeString(jsonObject.value("errCode").toString())

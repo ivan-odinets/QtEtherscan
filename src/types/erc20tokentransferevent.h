@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,9 +25,18 @@
 #ifndef ERC20TOKENTRANSFEREVENT_H
 #define ERC20TOKENTRANSFEREVENT_H
 
-#include "./global.h"
+#include <QDebug>
+#include <QJsonObject>
+
+#include "./constants.h"
+#include "./jsonobjectslist.h"
 
 namespace QtEtherscan {
+
+/*! @class ERC20TokenTransferEvent src/types/erc20tokentransferevent.h
+ *  @brief A list of such objects is returned by API::getListOfERC20TokenTransfers method.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-erc20-token-transfer-events-by-address */
 
 class ERC20TokenTransferEvent
 {
@@ -37,17 +46,21 @@ public:
     ERC20TokenTransferEvent(const QJsonValue& jsonValue) :
         ERC20TokenTransferEvent(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this ERC20TokenTransferEvent object is valid and contains reasonable information.
+     *         ERC20TokenTransferEvent object is considered to be valid if blockNumber() contains anything but not -1. */
     bool      isValid() const               { return m_blockNumber != InvalidBlockNumber; }
 
     qint32    blockNumber() const           { return m_blockNumber; }
-    QDateTime timeStamp() const             { return m_timeStamp; }
+    QDateTime timeStamp() const             { return QDateTime::fromSecsSinceEpoch(m_timeStamp); }
     QString   hash() const                  { return m_hash; }
     quint64   nonce() const                 { return m_nonce; };
     QString   blockHash() const             { return m_blockHash; }
     QString   from() const                  { return m_from; }
     QString   contractAddress() const       { return m_contractAddress; }
     QString   to() const                    { return m_to; }
-    quint64   value() const                 { return m_value; }
+    Q_DECL_DEPRECATED_X("This method will be removed in next release.")
+    quint64   value() const                 { return m_value.toULongLong(); }
+    QString   valueString() const           { return m_value; }
     QString   tokenName() const             { return m_tokenName; }
     QString   tokenSymbol() const           { return m_tokenSymbol; }
     quint16   tokenDecimal() const          { return m_tokenDecimal; }
@@ -61,14 +74,14 @@ public:
 
 private:
     qint32    m_blockNumber;
-    QDateTime m_timeStamp;
+    qint64    m_timeStamp;
     QString   m_hash;
     quint64   m_nonce;
     QString   m_blockHash;
     QString   m_from;
     QString   m_contractAddress;
     QString   m_to;
-    quint64   m_value;
+    QString   m_value;
     QString   m_tokenName;
     QString   m_tokenSymbol;
     quint16   m_tokenDecimal;
@@ -92,7 +105,13 @@ inline QDebug operator<< (QDebug dbg, const ERC20TokenTransferEvent& tokenTransf
     return dbg.maybeSpace();
 }
 
-typedef JsonObjectsList<ERC20TokenTransferEvent> ERC20TokenTransferEventList;
+/*! @typedef ERC20TokenTransferEventList src/types/erc20tokentransferevent.h
+ *  @brief This is a list of ERC20TokenTransferEvent objects. It is returned by API::getListOfERC20TokenTransfers
+ *         method. Nothing more than a QList with some extra constructors (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-erc20-token-transfer-events-by-address */
+
+typedef JsonObjectsList<ERC20TokenTransferEvent> ERC20TokenTransferEventList;\
 
 inline QDebug operator<<(QDebug dbg, const ERC20TokenTransferEventList& erc20TokenTransferEventList)
 {

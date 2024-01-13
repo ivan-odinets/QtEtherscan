@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -37,13 +37,14 @@ namespace QtEtherscan {
  */
 
 API::API(QObject *parent)
-    : QObject(parent)
+    : QObject{parent},m_errorCode{NoError}
 {
     setEtheriumNetwork(Mainnet);
 }
 
 API::API(const QString& apiKey,QObject* parent)
-    : QObject(parent),m_apiKey(apiKey)
+    : QObject{parent},
+      m_apiKey{apiKey},m_errorCode{NoError}
 {
     setEtheriumNetwork(Mainnet);
 }
@@ -71,6 +72,15 @@ void API::setEtheriumNetwork(Network etheriumNetwork)
         return;
     }
     Q_ASSERT(false);
+}
+
+QJsonObject API::call(const QUrlQuery& query)
+{
+    //if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    QJsonObject result = makeApiCall(query);
+    m_errorCode = getErrorCode(result);
+    return result;
 }
 
 /*
@@ -238,7 +248,7 @@ BlockList API::getListOfBlocksMinedByAddress(const QString& address, BlockType b
 {
     QUrlQuery query({
         { QLatin1String("module"),          QLatin1String("account") },
-        { QLatin1String("action"),          QLatin1String("txlist") },
+        { QLatin1String("action"),          QLatin1String("getminedblocks") },
         { QLatin1String("address"),         address },
         { QLatin1String("page"),            QString::number(page) },
         { QLatin1String("offset"),          QString::number(offset) },
@@ -250,29 +260,91 @@ BlockList API::getListOfBlocksMinedByAddress(const QString& address, BlockType b
     return responseObject<BlockList>(makeApiCall(query));
 }
 
-/*
- **********************************************************************************************************************
- *
- * Implemented API methods from "logs" module
- *
- */
-
-EventLogList API::getEventLogs(const QString& address, qint32 fromBlock, qint32 toBlock, int page, int offset)
+BlockList API::getListOfBlocksValidatedByAddress(const QString& address, BlockType blockType, int page, int offset)
 {
     QUrlQuery query({
-        { QLatin1String("module"),     QLatin1String("logs") },
-        { QLatin1String("action"),     QLatin1String("getLogs") },
-        { QLatin1String("address"),    address },
-        { QLatin1String("fromBlock"),  QString::number(fromBlock) },
-        { QLatin1String("toBlock"),    QString::number(toBlock) },
-        { QLatin1String("page"),       QString::number(page) },
-        { QLatin1String("offset"),     QString::number(offset) },
+        { QLatin1String("module"),          QLatin1String("account") },
+        { QLatin1String("action"),          QLatin1String("getminedblocks") },
+        { QLatin1String("address"),         address },
+        { QLatin1String("page"),            QString::number(page) },
+        { QLatin1String("offset"),          QString::number(offset) },
+        { QLatin1String("blocktype"),       (blockType == UnclesType) ? QLatin1String("uncles") : QLatin1String("desc") }
     });
 
     if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
 
-    return responseObject<EventLogList>(makeApiCall(query));
+    return responseObject<BlockList>(makeApiCall(query));
 }
+
+BeaconChainWithdrawalList API::getBeaconChainWithdrawals(const QString& address, qint32 startBlock, qint32 endBlock, int page, int offset, Sort sort)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),          QLatin1String("account") },
+        { QLatin1String("action"),          QLatin1String("txsBeaconWithdrawal") },
+        { QLatin1String("address"),         address },
+        { QLatin1String("startblock"),      QString::number(startBlock) },
+        { QLatin1String("endblock"),        QString::number(endBlock) },
+        { QLatin1String("page"),            QString::number(page) },
+        { QLatin1String("offset"),          QString::number(offset)},
+        { QLatin1String("sort"),            (sort == Asc) ? QLatin1String("asc") : QLatin1String("desc") }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return responseObject<BeaconChainWithdrawalList>(makeApiCall(query));
+}
+
+/*
+ **********************************************************************************************************************
+ *
+ * Implemented API methods from "contract" module
+ *
+ */
+
+QJsonArray API::getContratABI(const QString& address)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),          QLatin1String("contract") },
+        { QLatin1String("action"),          QLatin1String("getabi") },
+        { QLatin1String("address"),         address }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    QJsonObject response = makeApiCall(query);
+    m_errorCode = getErrorCode(response);
+    if (m_errorCode != NoError)
+        return QJsonArray();
+
+    return QJsonDocument::fromJson(response.value("result").toString().toLocal8Bit()).array();
+}
+
+ContractSourceCode API::getContractSourceCode(const QString& address)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),          QLatin1String("contract") },
+        { QLatin1String("action"),          QLatin1String("getsourcecode") },
+        { QLatin1String("address"),         address }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return responseObject<ContractSourceCode>(makeApiCall(query));
+}
+
+ContractCreatorList API::getContractCreatorList(const QStringList& addresses)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),               QLatin1String("contract")               },
+        { QLatin1String("action"),               QLatin1String("getcontractcreation")    },
+        { QLatin1String("contractaddresses"),    addresses.join(',')                     }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return responseObject<ContractCreatorList>(makeApiCall(query));
+}
+
 
 /*
  **********************************************************************************************************************
@@ -368,6 +440,298 @@ qint32 API::getBlockNumberByTimestamp(qint64 timestamp,Closest closest)
 /*
  **********************************************************************************************************************
  *
+ * Implemented API methods from "logs" module
+ *
+ */
+
+EventLogList API::getEventLogs(const QString& address, qint32 fromBlock, qint32 toBlock, int page, int offset)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("logs") },
+        { QLatin1String("action"),     QLatin1String("getLogs") },
+        { QLatin1String("address"),    address },
+        { QLatin1String("fromBlock"),  QString::number(fromBlock) },
+        { QLatin1String("toBlock"),    QString::number(toBlock) },
+        { QLatin1String("page"),       QString::number(page) },
+        { QLatin1String("offset"),     QString::number(offset) },
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return responseObject<EventLogList>(makeApiCall(query));
+}
+
+EventLogList API::getEventLogsByTopics(const QMap<QString,QString>& topics, qint32 fromBlock, qint32 toBlock, int page, int offset)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("logs") },
+        { QLatin1String("action"),     QLatin1String("getLogs") },
+        { QLatin1String("fromBlock"),  QString::number(fromBlock) },
+        { QLatin1String("toBlock"),    QString::number(toBlock) },
+        { QLatin1String("page"),       QString::number(page) },
+        { QLatin1String("offset"),     QString::number(offset) },
+    });
+
+    for (auto i = topics.constBegin(); i != topics.constEnd(); i++)
+        query.addQueryItem(i.key(),i.value());
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return responseObject<EventLogList>(makeApiCall(query));
+}
+
+EventLogList API::getEventLogsByAddressTopics(const QMap<QString,QString>& topics, const QString& address, qint32 fromBlock, qint32 toBlock, int page, int offset)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("logs") },
+        { QLatin1String("action"),     QLatin1String("getLogs") },
+        { QLatin1String("address"),    address },
+        { QLatin1String("fromBlock"),  QString::number(fromBlock) },
+        { QLatin1String("toBlock"),    QString::number(toBlock) },
+        { QLatin1String("page"),       QString::number(page) },
+        { QLatin1String("offset"),     QString::number(offset) },
+    });
+
+    for (auto i = topics.constBegin(); i != topics.constEnd(); i++)
+        query.addQueryItem(i.key(),i.value());
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return responseObject<EventLogList>(makeApiCall(query));
+}
+
+/*
+ **********************************************************************************************************************
+ *
+ * Implemented API methods from "proxy" module
+ *
+ */
+
+Proxy::BlockNumberResponse API::eth_blockNumber()
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_blockNumber") }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::BlockNumberResponse>(makeApiCall(query));
+}
+
+Proxy::BlockResponse API::eth_getBlockByNumber(const QString blockNumberString, bool boolean)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getBlockByNumber") },
+        { QLatin1String("tag"),        blockNumberString },
+        { QLatin1String("boolean"),    (boolean) ? QLatin1String("true") : QLatin1String("false") }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::BlockResponse>(makeApiCall(query));
+}
+
+Proxy::BlockResponse API::eth_getBlockByNumber(qint32 blockNumber, bool boolean)
+{
+    return eth_getBlockByNumber(Proxy::Helper::intToEthString(blockNumber),boolean);
+}
+
+Proxy::BlockResponse API::eth_getUncleByBlockNumberAndIndex(const QString& blockNumberString,const QString& indexString)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getUncleByBlockNumberAndIndex") },
+        { QLatin1String("tag"),        blockNumberString },
+        { QLatin1String("index"),      indexString }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::BlockResponse>(makeApiCall(query));
+}
+
+Proxy::BlockResponse API::eth_getUncleByBlockNumberAndIndex(qint32 blockNumber,int index)
+{
+    return eth_getUncleByBlockNumberAndIndex(Proxy::Helper::intToEthString(blockNumber),
+                                             Proxy::Helper::intToEthString(index));
+}
+
+Proxy::TransactionCountResponse API::eth_getBlockTransactionCountByNumber(const QString& blockNumberString)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getBlockTransactionCountByNumber") },
+        { QLatin1String("tag"),        blockNumberString }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::TransactionCountResponse>(makeApiCall(query));
+}
+
+Proxy::TransactionCountResponse API::eth_getBlockTransactionCountByNumber(qint32 blockNumber)
+{
+    return eth_getBlockTransactionCountByNumber(Proxy::Helper::intToEthString(blockNumber));
+}
+
+Proxy::TransactionResponse API::eth_getTransactionByHash(const QString& txHash)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getTransactionByHash") },
+        { QLatin1String("txhash"),     txHash }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::TransactionResponse>(makeApiCall(query));
+}
+
+Proxy::TransactionResponse API::eth_getTransactionByBlockNumberAndIndex(const QString& blockNumber, const QString& index)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getTransactionByBlockNumberAndIndex") },
+        { QLatin1String("tag"),        blockNumber },
+        { QLatin1String("index"),      index }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::TransactionResponse>(makeApiCall(query));
+}
+
+Proxy::TransactionResponse API::eth_getTransactionByBlockNumberAndIndex(qint32 blockNumber, qint32 index)
+{
+    return eth_getTransactionByBlockNumberAndIndex(Proxy::Helper::intToEthString(blockNumber),
+                                                   Proxy::Helper::intToEthString(index));
+}
+
+Proxy::TransactionCountResponse API::eth_getTransactionCount(const QString& address, Tag tag)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getTransactionCount") },
+        { QLatin1String("address"),    address },
+        { QLatin1String("tag"),        tagToString(tag) }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::TransactionCountResponse>(makeApiCall(query));
+}
+
+Proxy::TransactionHashResponse API::eth_sendRawTransaction(const QString& hex)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_sendRawTransaction") },
+        { QLatin1String("hex"),        hex }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::TransactionHashResponse>(makeApiCall(query));
+}
+
+Proxy::TransactionReceiptResponse API::eth_getTransactionReceipt(const QString& txHash)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getTransactionReceipt") },
+        { QLatin1String("txhash"),     txHash }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::TransactionReceiptResponse>(makeApiCall(query));
+}
+
+Proxy::Response<QString> API::eth_call(const QString& to, const QString& data, Tag tag)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_call") },
+        { QLatin1String("to"),         to },
+        { QLatin1String("data"),       data },
+        { QLatin1String("tag"),        tagToString(tag) }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::Response<QString> >(makeApiCall(query));
+}
+
+Proxy::Response<QString> API::eth_getCode(const QString& address, Tag tag)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getCode") },
+        { QLatin1String("address"),    address },
+        { QLatin1String("tag"),        tagToString(tag) }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::Response<QString> >(makeApiCall(query));
+}
+
+Proxy::Response<QString> API::eth_getStorageAt(const QString& address, const QString& positionString, Tag tag)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_getCode") },
+        { QLatin1String("address"),    address },
+        { QLatin1String("position"),   positionString },
+        { QLatin1String("tag"),        tagToString(tag) }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::Response<QString> >(makeApiCall(query));
+}
+
+Proxy::GasPriceResponse API::eth_gasPrice()
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_gasPrice") }
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::GasPriceResponse>(makeApiCall(query));
+}
+
+Proxy::Response<QString> API::eth_estimateGas(const QString& data, const QString& to,const QString& value,const QString& gasPrice, const QString& gas)
+{
+    QUrlQuery query({
+        { QLatin1String("module"),     QLatin1String("proxy") },
+        { QLatin1String("action"),     QLatin1String("eth_estimateGas") },
+        { QLatin1String("data"),       data },
+        { QLatin1String("to"),         to },
+        { QLatin1String("value"),      value },
+        { QLatin1String("gasPrice"),   gasPrice},
+        { QLatin1String("gas"),        gas }
+
+    });
+
+    if (!m_apiKey.isEmpty()) query.addQueryItem(QLatin1String("apikey"),m_apiKey);
+
+    return proxyResponse<Proxy::Response<QString> >(makeApiCall(query));
+}
+
+Proxy::Response<QString> API::eth_estimateGas(const QString& data, const QString& to,const QString& value,quint64 gasPrice, quint64 gas)
+{
+    return eth_estimateGas(data,to,value,Proxy::Helper::intToEthString(gasPrice),
+                                         Proxy::Helper::intToEthString(gas));
+}
+
+/*
+ **********************************************************************************************************************
+ *
  * Implemented API methods from "tokens" module
  *
  */
@@ -385,12 +749,13 @@ QString API::getERC20TokenTotalSupply(const QString& contractAddress)
     return responseString(makeApiCall(query));
 }
 
-QString API::getERC20TokenAccountBalance(const QString& contractAddress, const QString& address)
+QString API::getERC20TokenAccountBalance(const QString& contractAddress, const QString& address, Tag tag)
 {
     QUrlQuery query({
         { QLatin1String("module"),          QLatin1String("account") },
         { QLatin1String("action"),          QLatin1String("tokenbalance") },
         { QLatin1String("contractaddress"), contractAddress},
+        { QLatin1String("tag"),             tagToString(tag) },
         { QLatin1String("address"),         address}
     });
 
@@ -536,7 +901,14 @@ template<class C>
 C API::responseObject(const QJsonObject& response)
 {
     m_errorCode = getErrorCode(response);
-    return m_errorCode == NoError ? C(response.value("result")) : C();
+    return (m_errorCode == NoError) ? C(response.value("result")) : C();
+}
+
+template<class C>
+C API::proxyResponse(const QJsonObject& response)
+{
+    m_errorCode = getErrorCode(response);
+    return (m_errorCode == NoError) ? C(response) : C();
 }
 
 QString API::responseString(const QJsonObject& response)
@@ -548,7 +920,7 @@ QString API::responseString(const QJsonObject& response)
 qint64 API::responseInt(const QJsonObject& response)
 {
     m_errorCode = getErrorCode(response);
-    return m_errorCode == NoError ? response.value("result").toString().toDouble() : 0;
+    return m_errorCode == NoError ? response.value("result").toString().toLongLong() : 0;
 }
 
 API::Error API::getErrorCode(const QJsonObject& jsonObject)
@@ -556,13 +928,19 @@ API::Error API::getErrorCode(const QJsonObject& jsonObject)
     if (jsonObject.isEmpty())
         return NetworkError;
 
+    // If we have reply for etherscan API method - we have status field in reply QJsonObject
     if (jsonObject.value("status").toString() == QLatin1String("1"))
+        return NoError;
+
+    // If we have reply for etherscan geth/parity method - we have "jsonrpc" field in reply QJsonObject
+    if (jsonObject.contains("jsonrpc"))
         return NoError;
 
     if (jsonObject.value("message").toString() == QLatin1String("No transactions found"))
         return NoTransactionsFoundError;
 
     QString errorString = jsonObject.value("result").toString();
+    m_errorMessage = errorString;
     if (errorString.contains(QLatin1String("Max rate limit reached")))
         return MaxRateError;
 
@@ -589,6 +967,20 @@ API::Error API::getErrorCode(const QJsonObject& jsonObject)
 
     qDebug() << "Etherscan API Error: "<<errorString;
     return UnknownError;
+}
+
+QString API::tagToString(Tag tag)
+{
+    switch (tag) {
+    case Latest:
+        return QLatin1String("latest");
+    case Pending:
+        return QLatin1String("pending");
+    case Earliest:
+        return QLatin1String("earliest");
+    }
+    Q_ASSERT(false);
+    return QString();
 }
 
 } //namespace QtEtherscan

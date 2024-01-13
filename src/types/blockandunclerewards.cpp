@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -27,12 +27,13 @@
 namespace QtEtherscan {
 
 BlockAndUncleRewards::BlockAndUncleRewards() :
-    m_blockNumber(InvalidBlockNumber)
+    m_blockNumber(InvalidBlockNumber),
+    m_timestamp(0)
 {}
 
 BlockAndUncleRewards::BlockAndUncleRewards(const QJsonObject& jsonObject) :
     m_blockNumber(jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toLong()),
-    m_timestamp(QDateTime::fromSecsSinceEpoch(jsonObject.value("timeStamp").toString().toLongLong())),
+    m_timestamp(jsonObject.value("timeStamp").toString().toLongLong()),
     m_blockMiner(jsonObject.value("blockMiner").toString()),
     m_blockReward(jsonObject.value("blockReward").toString()),
     m_uncles(jsonObject.value("uncles").toArray()),

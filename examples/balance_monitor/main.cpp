@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -22,8 +22,12 @@
  *
  */
 
+/*! @file examples/balance_monitor/main.cpp
+ *  @brief In this file basic usage of QtEtherscan is shown. */
+
 #include <QCoreApplication>
 #include <QDebug>
+#include <QUrlQuery>
 
 #include "QtEtherscan.h"
 
@@ -37,15 +41,24 @@ int main(int argc, char *argv[])
 
     etherscan.setApiKey(TOKEN);
     etherscan.setEtheriumNetwork(QtEtherscan::API::Mainnet);
+
+    // For calling etherscan.io API methods you cen either simply invoke propper method from QtEtherscan::API class.
     QtEtherscan::EtherBalance balance = etherscan.getEtherBalance("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae");
     qDebug() << balance;
 
-    qDebug() << "Multimple accounts:";
-    QtEtherscan::AccountBalanceList accounts = etherscan.getEtherBalance(
-        { "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae","0x63a9975ba31b0b9626b34300f7f627147df1f526"});
+    // Or alternatively you can use QtEherscan::API::call method
+    QJsonObject result = etherscan.call({
+        { QLatin1String("module"),     QLatin1String("account") },
+        { QLatin1String("action"),     QLatin1String("balance") },
+        { QLatin1String("tag"),        QLatin1String("latest") },
+        { QLatin1String("address"),    "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae" }
+    });
 
-    foreach (auto balance, accounts)
-        qDebug() << balance;
+    // And than accessing propper data using QJsonObject methods
+    qDebug() << "wei="<<result.value("result").toString();
+
+    // Or like this
+    qDebug() << QtEtherscan::EtherBalance(result.value("result").toString());
 
     return a.exec();
 }

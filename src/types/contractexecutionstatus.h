@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,10 +25,16 @@
 #ifndef CONTRACTEXECUTIONSTATUS_H
 #define CONTRACTEXECUTIONSTATUS_H
 
+#include <QDebug>
 #include <QJsonObject>
 #include <QJsonValue>
 
 namespace QtEtherscan {
+
+/*! @class ContractExecutionStatus src/types/contractexecutionstatus.h
+ *  @brief Object of this type is returned by API::checkContractExecutionStatus method.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/stats#check-contract-execution-status */
 
 class ContractExecutionStatus
 {
@@ -38,6 +44,7 @@ public:
     ContractExecutionStatus(const QJsonValue& jsonValue) :
         ContractExecutionStatus(jsonValue.toObject()) {}
 
+    Q_DECL_DEPRECATED_X("This method will be removed in next version.")
     bool      isValid() const          { return !m_errDescription.isEmpty(); }
 
     bool      isError() const          { return m_isError; }

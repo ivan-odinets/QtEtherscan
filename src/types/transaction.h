@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,15 +25,19 @@
 #ifndef TRANSACTION_H
 #define TRANSACTION_H
 
-#include <QJsonArray>
+#include <QDebug>
 #include <QJsonObject>
-#include <QJsonValue>
-#include <QList>
 
 #include "./ether.h"
-#include "./global.h"
+#include "./constants.h"
+#include "./jsonobjectslist.h"
 
 namespace QtEtherscan {
+
+/*! @class Transaction src/types/transaction.h
+ *  @brief A list of such objects is returned by API::getListOfNomalTransactions method.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address */
 
 class Transaction
 {
@@ -43,10 +47,12 @@ public:
     Transaction(const QJsonValue& jsonValue) :
         Transaction(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this Transaction object is valid and contains reasonable information. Transaction object
+     *         is considered to be valid if blockNumber() contains anything but not -1. */
     bool      isValid() const               { return m_blockNumber != InvalidBlockNumber; }
 
     qint32    blockNumber() const           { return m_blockNumber; }
-    QDateTime timeStamp() const             { return m_timeStamp; }
+    QDateTime timeStamp() const             { return QDateTime::fromSecsSinceEpoch(m_timeStamp); }
     QString   hash() const                  { return m_hash; }
     quint64   nonce() const                 { return m_nonce; }
     quint64   transactionIndex() const      { return m_transactionIndex; }
@@ -68,7 +74,7 @@ public:
 
 private:
     qint32    m_blockNumber;
-    QDateTime m_timeStamp;
+    qint64    m_timeStamp;
     QString   m_hash;
     quint64   m_nonce;
     QString   m_blockHash;
@@ -98,6 +104,12 @@ inline QDebug operator<< (QDebug dbg, const Transaction& transaction)
 
     return dbg.maybeSpace();
 }
+
+/*! @typedef TransactionList src/types/transaction.h
+ *  @brief This is a list of Transaction objects. It is returned by API::getListOfNomalTransactions method. Nothing more
+ *         than a QList with some extra constructors (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address */
 
 typedef JsonObjectsList<Transaction> TransactionList;
 

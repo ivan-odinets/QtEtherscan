@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -27,7 +27,8 @@
 namespace QtEtherscan {
 
 ChainSize::ChainSize() :
-    m_blockNumber(InvalidBlockNumber)
+    m_blockNumber(InvalidBlockNumber),
+    m_chainSize(0)
 {}
 
 ChainSize::ChainSize(const QJsonObject& jsonObject) :

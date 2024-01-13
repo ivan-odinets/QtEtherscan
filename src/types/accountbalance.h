@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,10 +25,19 @@
 #ifndef ACCOUNTBALANCE_H
 #define ACCOUNTBALANCE_H
 
+#include <QDebug>
+#include <QJsonObject>
+
 #include "./ether.h"
-#include "./global.h"
+#include "./jsonobjectslist.h"
 
 namespace QtEtherscan {
+
+/*! @class AccountBalance src/types/accountbalance.h
+ *  @brief This object holds information about account and its balance. A list of such objects (AccountBalanceList) is
+ *         returned by method API::getEtherBalance (if called for multiple addresses within one API call).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-ether-balance-for-multiple-addresses-in-a-single-call */
 
 class AccountBalance
 {
@@ -38,6 +47,8 @@ public:
     AccountBalance(const QJsonValue& jsonValue) :
         AccountBalance(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this AccountBalance object is valid and contains reasonable information. AccountBalance
+     *         object is considered to be valid if account() contains non-empty QString. */
     bool      isValid() const     { return m_account.isEmpty(); }
 
     QString   account() const     { return m_account; }
@@ -57,14 +68,20 @@ inline QDebug operator<< (QDebug dbg, const AccountBalance& accountBalance)
     return dbg.maybeSpace();
 }
 
+/*! @typedef AccountBalanceList
+ *  @brief This is a list of AccountBalance objects. It is returned by method API::getEtherBalance (if called for multiple
+ *         addresses within one API call). Nothing more than a QList with some extra constructors (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-ether-balance-for-multiple-addresses-in-a-single-call */
+
 typedef JsonObjectsList<AccountBalance> AccountBalanceList;
 
 inline QDebug operator<< (QDebug dbg, const AccountBalanceList& accountBalanceList)
 {
-    qUtf8Printable(QString("AccountBalanceList(count=%1)")
+    dbg.nospace() << qUtf8Printable(QString("AccountBalanceList(count=%1)")
                    .arg(accountBalanceList.count()));
 
-        return dbg.maybeSpace();
+    return dbg.maybeSpace();
 }
 
 } //namespace QtEtherscan

@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -25,9 +25,18 @@
 #ifndef ERC1155TOKENTRANSFEREVENT_H
 #define ERC1155TOKENTRANSFEREVENT_H
 
-#include "./global.h"
+#include <QDebug>
+#include <QJsonObject>
+
+#include "./constants.h"
+#include "./jsonobjectslist.h"
 
 namespace QtEtherscan {
+
+/*! @class ERC1155TokenTransferEvent src/types/erc1155tokentransferevent.h
+ *  @brief A list of such objects is returned by API::getListOfERC1155TokenTransfers method.
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-erc1155-token-transfer-events-by-address */
 
 class ERC1155TokenTransferEvent
 {
@@ -37,10 +46,12 @@ public:
     ERC1155TokenTransferEvent(const QJsonValue& jsonValue) :
         ERC1155TokenTransferEvent(jsonValue.toObject()) {}
 
+    /*! @brief Returns true if this ERC1155TokenTransferEvent object is valid and contains reasonable information.
+     *         ERC1155TokenTransferEvent object is considered to be valid if blockNumber() contains anything but not -1. */
     bool      isValid() const               { return m_blockNumber != InvalidBlockNumber; }
 
     qint32    blockNumber() const           { return m_blockNumber; }
-    QDateTime timeStamp() const             { return m_timeStamp; }
+    QDateTime timeStamp() const             { return QDateTime::fromSecsSinceEpoch(m_timeStamp); }
     QString   hash() const                  { return m_hash; }
     quint64   nonce() const                 { return m_nonce; };
     QString   blockHash() const             { return m_blockHash; }
@@ -61,7 +72,7 @@ public:
 
 private:
     qint32    m_blockNumber;
-    QDateTime m_timeStamp;
+    qint64    m_timeStamp;
     QString   m_hash;
     quint64   m_nonce;
     QString   m_blockHash;
@@ -91,6 +102,12 @@ inline QDebug operator<< (QDebug dbg, const ERC1155TokenTransferEvent& tokenTran
 
     return dbg.maybeSpace();
 }
+
+/*! @typedef ERC1155TokenTransferEventList src/types/erc1155tokentransferevent.h
+ *  @brief This is a list of ERC1155TokenTransferEvent objects. It is returned by API::getListOfERC1155TokenTransfers
+ *         method. Nothing more than a QList with some extra constructors (JsonObjectList).
+ *
+ * @see https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-erc1155-token-transfer-events-by-address */
 
 typedef JsonObjectsList<ERC1155TokenTransferEvent> ERC1155TokenTransferEventList;
 

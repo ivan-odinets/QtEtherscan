@@ -26,10 +26,14 @@
 
 namespace QtEtherscan {
 
+Uncle::Uncle() :
+    m_unclePosition(0)
+{}
+
 Uncle::Uncle(const QJsonObject& jsonObject) :
     m_miner(jsonObject.value("miner").toString()),
     m_unclePosition(jsonObject.value("unclePosition").toString().toInt()),
-    m_blockReward(jsonObject.value("blockReward"))
+    m_blockReward(jsonObject.value("blockreward").toString())
 {}
 
 } //namespace QtEtherscan

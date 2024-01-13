@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2023 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets
  *
  * This file is part of QtEtherscan
  *
@@ -30,9 +30,12 @@
 #include "./networking.h"
 
 #include "./types/accountbalance.h"
+#include "./types/beaconchainwithdrawal.h"
 #include "./types/block.h"
 #include "./types/blockandunclerewards.h"
+#include "./types/contractcreator.h"
 #include "./types/contractexecutionstatus.h"
+#include "./types/contractsourcecode.h"
 #include "./types/erc20tokentransferevent.h"
 #include "./types/erc721tokentransferevent.h"
 #include "./types/erc1155tokentransferevent.h"
@@ -46,14 +49,23 @@
 #include "./types/nodescount.h"
 #include "./types/nodessize.h"
 #include "./types/transaction.h"
-#include "./types/global.h"
+#include "./types/enums.h"
+
+#include "./types/proxy/eth_blocknumber.h"
+#include "./types/proxy/eth_gasprice.h"
+#include "./types/proxy/eth_block.h"
+#include "./types/proxy/eth_transaction.h"
+#include "./types/proxy/eth_transactioncount.h"
+#include "./types/proxy/eth_transactionhash.h"
+#include "./types/proxy/eth_transactionreceipt.h"
 
 namespace QtEtherscan {
 
-/*!
- * @class API src/api.h
- * @brief API class provides interface to communicate with Etherscan servers
- */
+/*! @class API "QtEtherscan.h"
+ *  @brief API class provides interface to communicate with Etherscan servers
+ *  @details For usage examples check examples directory.
+ *  @example examples/error_handling/main.cpp
+ *  @example examples/balance_monitor/main.cpp */
 
 class API : public QObject
 {
@@ -71,7 +83,7 @@ public:
 
     /*! @brief This enum holds information about what exactly error happened */
     enum Error {
-        NoError,                       /*!< @brief If the request was successfuul */
+        NoError,                       /*!< @brief If the request was successfull */
         NetworkError,                  /*!< @brief If during request some networking error happened */
 
         NoRecorsFoundError,            /*!< @brief Corresponds to "result":"No records found" */
@@ -124,16 +136,30 @@ public:
      *  @returns QtEtherscan::Network value */
     Network        etheriumNetwork() const                 { return m_activeEtheriumNetwork; }
 
-    /*! @brief This method can be used to get information about errors related to Etherscan API
-     *  @return Error::NoError on success and any other value - if failed. */
+    /*! @brief This method can be used to get information about errors related to Etherscan API.
+     *  @details If the last request to etherscan.io servers failed due to whatever reason - this method should return
+     *           value from enum QtEtherscan::API::Error which is representing occured error. If the last request was
+     *           successfull - this method should return QtEtherscan::API::NoError value. */
     Error          errorCode() const                       { return m_errorCode; }
 
-    /*
-     **********************************************************************************************************************
-     *
-     * Implemented API methods from "accounts" module
-     *
-     */
+    /*! @brief This method can be used to get detailed information about errors related to Etherscan API
+     *  @details If the last request to etherscan.io servers failed due to whatever reason - this method should return
+     *           error description provided by etherscan.io server. If the last request was successfull - this method
+     *           should return empty QString.
+     *  @return QString containing error message given by Etherscan */
+    QString        errorMessage() const                    { return m_errorMessage; }
+
+    /*! @brief This method can be used to call API methods "manualy". For example, for now this can be used to call PRO
+     *         API methods, which are not yet implemented. NOTE - if calling this method, you will need to add your
+     *         ethersan.io API token manually.
+     *  @param query - QUrlQuery populated with propper parameters.
+     *  @return QJsonObject containing whole reply from etherscan.io servers. */
+    QJsonObject call(const QUrlQuery& query);
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from etherscan.io "accounts" module.
+     *  @{ */
 
     /*! @brief Returns the Ether balance of a given address.
      *  @returns EtherBalance object
@@ -192,27 +218,50 @@ public:
 
     /*! @brief Returns the list of blocks mined by an address.
      *  @returns BlockList object
-     *  @see https://docs.etherscan.io/api-endpoints/accounts#get-list-of-blocks-mined-by-address */
+     *  @see https://docs.etherscan.io/api-endpoints/accounts#get-list-of-blocks-mined-by-address
+     *  @deprecated */
+    Q_DECL_DEPRECATED_X("This method will is going to be replaced by getListOfBlocksValidatedByAddress instead.")
     BlockList getListOfBlocksMinedByAddress(const QString& address, BlockType blockType, int page, int offset);
 
-    /*
-     **********************************************************************************************************************
-     *
-     * Implemented API methods from "logs" module
-     *
-     */
+    /*! @brief Returns the list of blocks validated by an address.
+     *  @returns BlockList object
+     *  @see https://docs.etherscan.io/api-endpoints/accounts#get-list-of-blocks-validated-by-address */
+    BlockList getListOfBlocksValidatedByAddress(const QString& address, BlockType blockType, int page, int offset);
 
-    /*! @brief Returns the event logs from an address, with optional filtering by block range.
-     *  @returns EventLogList object
-     *  @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-address */
-    EventLogList getEventLogs(const QString& address, qint32 fromBlock, qint32 toBlock, int page, int offset);
+    /*! @brief Returns the beacon chain withdrawals made to an address.
+     *  @returns BeaconChainWithdrawalList object
+     *  @see https://docs.etherscan.io/api-endpoints/accounts#get-beacon-chain-withdrawals-by-address-and-block-range */
+    BeaconChainWithdrawalList getBeaconChainWithdrawals(const QString& address, qint32 startBlock, qint32 endBlock, int page, int offset, Sort sort);
 
-    /*
-     **********************************************************************************************************************
-     *
-     * Implemented API methods from "transaction" module
-     *
-     */
+    /*! @} */
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from "contracts" module.
+     *  @{ */
+
+    /*! @brief Returns the Contract Application Binary Interface ( ABI ) of a verified smart contract.
+     *  @returns QJsonArray
+     *  @see https://docs.etherscan.io/api-endpoints/contracts#get-contract-abi-for-verified-contract-source-codes */
+    QJsonArray getContratABI(const QString& address);
+
+
+    /*! @brief Returns the Solidity source code of a verified smart contract.
+     *  @returns ContractSourceCode object
+     *  @see https://docs.etherscan.io/api-endpoints/contracts#get-contract-source-code-for-verified-contract-source-codes */
+    ContractSourceCode getContractSourceCode(const QString& address);
+
+    /*! @brief Returns a contract's deployer address and transaction hash it was created, up to 5 at a time.
+     *  @returns ContractCreatorList object
+     *  @see https://docs.etherscan.io/api-endpoints/contracts#get-contract-creator-and-creation-tx-hash */
+    ContractCreatorList getContractCreatorList(const QStringList& addresses);
+
+    /*! @} */
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from "transactions" module.
+     *  @{ */
 
     /*! @brief Returns the status code of a contract execution.
      *  @returns ContractExecutionStatus object
@@ -224,12 +273,12 @@ public:
      *  @see https://docs.etherscan.io/api-endpoints/stats#check-transaction-receipt-status */
     bool checkTransactionReceiptStatus(const QString& txHash);
 
-    /*
-     **********************************************************************************************************************
-     *
-     * Implemented API methods from "blocks" module
-     *
-     */
+    /*! @} */
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from "blocks" module.
+     *  @{ */
 
     /*! @brief Returns the block reward and 'Uncle' block rewards.
      *  @see https://docs.etherscan.io/api-endpoints/blocks#get-block-and-uncle-rewards-by-blockno */
@@ -242,14 +291,117 @@ public:
     /*! @brief Returns the block number that was mined at a certain timestamp.
      *  @see https://docs.etherscan.io/api-endpoints/blocks#get-block-number-by-timestamp */
     qint32 getBlockNumberByTimestamp(const QDateTime& timestamp,Closest closest);
+
+    /*! @overload */
     qint32 getBlockNumberByTimestamp(qint64 timestamp,Closest closest);
 
-    /*
-     **********************************************************************************************************************
-     *
-     * Implemented API methods from "tokens" module
-     *
-     */
+    /*! @} */
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from "logs" module.
+     *  @{ */
+
+    /*! @brief Returns the event logs from an address, with optional filtering by block range.
+     *  @returns EventLogList object
+     *  @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-address */
+    EventLogList getEventLogs(const QString& address, qint32 fromBlock, qint32 toBlock, int page, int offset);
+
+    /*! @brief Returns the events log in a block range, filtered by topics.
+     *  @returns EventLogList object
+     *  @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-topics */
+    EventLogList getEventLogsByTopics(const QMap<QString,QString>& topics, qint32 fromBlock, qint32 toBlock, int page, int offset);
+
+    /*! @brief Returns the event logs from an address, filtered by topics and block range.
+     *  @returns EventLogList object
+     *  @see https://docs.etherscan.io/api-endpoints/logs#get-event-logs-by-address-filtered-by-topics */
+    EventLogList getEventLogsByAddressTopics(const QMap<QString,QString>& topics, const QString& address, qint32 fromBlock, qint32 toBlock, int page, int offset);
+
+    /*! @} */
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from "proxy" module.
+     *  @{ */
+
+    /*! @brief Returns the number of most recent block.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_blocknumber */
+    Proxy::BlockNumberResponse eth_blockNumber();
+
+    /*! @brief Returns information about a block by block number.
+     *  @param boolean If true it returns the full transaction objects, if false only the hashes of the transactions.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getblockbynumber */
+    Proxy::BlockResponse eth_getBlockByNumber(const QString blockNumberString, bool boolean = true);
+
+    /*! @overload */
+    Proxy::BlockResponse eth_getBlockByNumber(qint32 blockNumber, bool boolean = true);
+
+    /*! @brief Returns information about a uncle by block number.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getunclebyblocknumberandindex */
+    Proxy::BlockResponse eth_getUncleByBlockNumberAndIndex(const QString& blockNumberString,const QString& indexString);
+
+    /*! @overload */
+    Proxy::BlockResponse eth_getUncleByBlockNumberAndIndex(qint32 blockNumber,qint32 index);
+
+    /*! @brief Returns the number of transactions in a block.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getblocktransactioncountbynumber */
+    Proxy::TransactionCountResponse eth_getBlockTransactionCountByNumber(const QString& blockNumberString);
+
+    /*! @overload */
+    Proxy::TransactionCountResponse eth_getBlockTransactionCountByNumber(qint32 blockNumber);
+
+    /*! @brief Returns the information about a transaction requested by transaction hash.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_gettransactionbyhash */
+    Proxy::TransactionResponse eth_getTransactionByHash(const QString& txHash);
+
+    /*! @brief Returns information about a transaction by block number and transaction index position.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_gettransactionbyblocknumberandindex */
+    Proxy::TransactionResponse eth_getTransactionByBlockNumberAndIndex(const QString& blockNumberString, const QString& index);
+
+    /*! @overload */
+    Proxy::TransactionResponse eth_getTransactionByBlockNumberAndIndex(qint32 blockNumber, qint32 index);
+
+    /*! @brief Returns the number of transactions performed by an address.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_gettransactioncount */
+    Proxy::TransactionCountResponse eth_getTransactionCount(const QString& address, Tag tag = Latest);
+
+    /*! @brief Submits a pre-signed transaction for broadcast to the Ethereum network.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_sendrawtransaction */
+    Proxy::TransactionHashResponse eth_sendRawTransaction(const QString& hex);
+
+    /*! @brief Returns the receipt of a transaction by transaction hash.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_gettransactionreceipt*/
+    Proxy::TransactionReceiptResponse eth_getTransactionReceipt(const QString& txHash);
+
+    /*! @brief Executes a new message call immediately without creating a transaction on the block chain.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_call */
+    Proxy::Response<QString> eth_call(const QString& to, const QString& data, Tag tag = Latest);
+
+    /*! @brief Returns code at a given address.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getcode */
+    Proxy::Response<QString> eth_getCode(const QString& address, Tag tag = Latest);
+
+    /*! @brief Returns the value from a storage position at a given address.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getstorageat */
+    Proxy::Response<QString> eth_getStorageAt(const QString& address, const QString& positionString, Tag tag = Latest);
+
+    /*! @brief Returns the current price per gas in wei.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_gasprice */
+    Proxy::GasPriceResponse eth_gasPrice();
+
+    /*! @brief Makes a call or transaction, which won't be added to the blockchain and returns the used gas.
+     *  @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_estimategas */
+    Proxy::Response<QString> eth_estimateGas(const QString& data, const QString& to,const QString& value,const QString& gasPrice, const QString& gas);
+
+    /*! @overload */
+    Proxy::Response<QString> eth_estimateGas(const QString& data, const QString& to,const QString& value,quint64 gasPrice, quint64 gas);
+
+    /*! @} */
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from "tokens" module.
+     *  @{ */
 
     /*! @brief Returns the current amount of an ERC-20 token in circulation.
      *  @return QString containing total supply of token in the token's smallest decimal representation. Eg. a token with
@@ -261,14 +413,14 @@ public:
      *  @return QString containing balance of token in the token's smallest decimal representation. Eg. a token with a
      *          balance of 215.241526476136819398 and 18 decimal places will be returned as 215241526476136819398
      *  @see https://docs.etherscan.io/api-endpoints/tokens#get-erc20-token-account-balance-for-tokencontractaddress */
-    QString getERC20TokenAccountBalance(const QString& contractAddress, const QString& address);
+    QString getERC20TokenAccountBalance(const QString& contractAddress, const QString& address, Tag tag);
 
-    /*
-     **********************************************************************************************************************
-     *
-     * Implemented API methods from "gas" module
-     *
-     */
+    /*! @} */
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from "gas" module.
+     *  @{ */
 
     /*! @brief Returns the estimated time, in seconds, for a transaction to be confirmed on the blockchain.
      *  @param gasPrce in Wei
@@ -279,12 +431,13 @@ public:
      *  @see https://docs.etherscan.io/api-endpoints/gas-tracker#get-gas-oracle */
     GasOracle getGasOracle();
 
-    /*
-     **********************************************************************************************************************
-     *
-     * Implemented API methods from "stats" module
-     *
-     */
+
+    /*! @} */
+
+    /*!
+     *********************************************************************************************************************
+     *  @name Implemented API methods from "stats" module.
+     *  @{ */
 
     /*! @brief Returns the current amount of Ether in circulation excluding ETH2 Staking rewards and EIP1559 burnt fees.
      *  @see https://docs.etherscan.io/api-endpoints/stats-1#get-total-supply-of-ether */
@@ -309,12 +462,17 @@ public:
      *  @see https://docs.etherscan.io/api-endpoints/stats-1#get-total-nodes-count */
     NodesCount getTotalNodesCount();
 
+    /*! @} */
+
 private:
     QJsonObject              makeApiCall(const QUrlQuery& urlQuery);
     qint64                   responseInt(const QJsonObject& response);
     QString                  responseString(const QJsonObject& response);
     template<class C> C      responseObject(const QJsonObject& response);
+    template<class C> C      proxyResponse(const QJsonObject& response);
     Error                    getErrorCode(const QJsonObject& response);
+
+    static QString           tagToString(Tag tag);
 
     Networking     m_net;
     QString        m_apiKey;
