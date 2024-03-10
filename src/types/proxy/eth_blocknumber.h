@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2023-2024 Ivan Odinets
+ * Copyright (C) 2023-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef ETH_BLOCKNUMBER_H
-#define ETH_BLOCKNUMBER_H
+#ifndef QT_ETHERSCAN_ETH_BLOCKNUMBER_H
+#define QT_ETHERSCAN_ETH_BLOCKNUMBER_H
 
 #include "./eth_response.h"
 #include "./eth_helper.h"
-#include "../constants.h"
+#include "../qethsc_constants.h"
 
 namespace QtEtherscan {
 
@@ -43,13 +43,14 @@ namespace Proxy {
  * @see https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_blocknumber
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_blocknumber */
 
-class BlockNumberResponse : public Response<qint32>
+class BlockNumberResponse : public IntResponse
 {
 public:
+    /*! @brief Default constructor. Constructs invalid BlockNumberResponse object. */
     BlockNumberResponse() :
-        Response<qint32>(InvalidBlockNumber) {}
+        IntResponse(InvalidBlockNumber) {}
     BlockNumberResponse(const QJsonObject& jsonObject,qint32 defaultValue = InvalidBlockNumber) :
-        Response<qint32>(jsonObject,defaultValue) {}
+        IntResponse(jsonObject,defaultValue) {}
     BlockNumberResponse(const QJsonValue& jsonValue) :
         BlockNumberResponse(jsonValue.toObject(),InvalidBlockNumber) {}
 
@@ -79,4 +80,4 @@ inline QDebug operator<< (QDebug dbg, const BlockNumberResponse& blockNumber)
 
 } // namespace QtEtherscan
 
-#endif // ETH_BLOCKNUMBER_H
+#endif // QT_ETHERSCAN_ETH_BLOCKNUMBER_H

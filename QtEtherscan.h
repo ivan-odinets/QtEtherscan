@@ -25,4 +25,4 @@
 /*! @file ./QtEtherscan.h
  *  @brief This file needs to be included in your project to use QtEtherscan lib */
 
-#include "./src/api.h"
+#include "./src/qethsc_api.h"

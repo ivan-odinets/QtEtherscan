@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2024 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef ETH_GASPRICE_H
-#define ETH_GASPRICE_H
+#ifndef QT_ETHERSCAN_ETH_GASPRICE_H
+#define QT_ETHERSCAN_ETH_GASPRICE_H
 
 #include "./eth_response.h"
 
@@ -39,13 +39,13 @@ namespace Proxy {
  * @see https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gasprice
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_gasprice */
 
-class GasPriceResponse : public Response<QString>
+class GasPriceResponse : public StringResponse
 {
 public:
     GasPriceResponse() :
-        Response<QString>() {}
+        StringResponse() {}
     GasPriceResponse(const QJsonObject& jsonObject) :
-        Response<QString>(jsonObject) {}
+        StringResponse(jsonObject) {}
     GasPriceResponse(const QJsonValue& jsonValue) :
         GasPriceResponse(jsonValue.toObject()) {}
 
@@ -55,7 +55,7 @@ public:
 
 inline QDebug operator<< (QDebug dbg, const GasPriceResponse& gasPriceResponse)
 {
-    dbg.nospace() << qUtf8Printable(QString("Proxy::Block(gasPriceString=%1)")
+    dbg.nospace() << qUtf8Printable(QString("Proxy::GasPriceResponse(gasPriceString=%1)")
                                     .arg(gasPriceResponse.gasPriceString()));
 
     return dbg.maybeSpace();

@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2024 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -29,21 +29,21 @@ namespace QtEtherscan {
 namespace Proxy {
 
 Log::Log() :
-    m_removed(true),
-    m_logIndex(0),
-    m_transactionIndex(0),
-    m_blockNumber(InvalidBlockNumber)
+    m_removed{true},
+    m_logIndex{0},
+    m_transactionIndex{0},
+    m_blockNumber{InvalidBlockNumber}
 {}
 
 Log::Log(const QJsonObject& jsonObject) :
-    m_removed(jsonObject.value("removed").toBool()),
-    m_logIndex(jsonObject.value("logIndex").toString().toInt(nullptr,0)),
-    m_transactionIndex(jsonObject.value("transactionIndex").toString().toInt(nullptr,0)),
-    m_transactionHash(jsonObject.value("transactionHash").toString()),
-    m_blockHash(jsonObject.value("blockHash").toString()),
-    m_blockNumber(jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toInt(nullptr,0)),
-    m_address(jsonObject.value("address").toString()),
-    m_data(jsonObject.value("data").toString())
+    m_removed           {jsonObject.value("removed").toBool()                                                },
+    m_logIndex          {jsonObject.value("logIndex").toString().toInt(nullptr,0)                            },
+    m_transactionIndex  {jsonObject.value("transactionIndex").toString().toInt(nullptr,0)                    },
+    m_transactionHash   {jsonObject.value("transactionHash").toString()                                      },
+    m_blockHash         {jsonObject.value("blockHash").toString()                                            },
+    m_blockNumber       {jsonObject.value("blockNumber").toString(InvalidBlockNumberString).toInt(nullptr,0) },
+    m_address           {jsonObject.value("address").toString()                                              },
+    m_data              {jsonObject.value("data").toString()                                                 }
 {
     QJsonArray topicsJsonArray = jsonObject.value("topics").toArray();
     for (const QJsonValue& topicJsonValue : topicsJsonArray)

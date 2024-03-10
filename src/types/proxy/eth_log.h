@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2024 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -22,16 +22,16 @@
  *
  */
 
-#ifndef LOG_H
-#define LOG_H
+#ifndef QT_ETHERSCAN_ETH_LOG_H
+#define QT_ETHERSCAN_ETH_LOG_H
 
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
 
 #include "./eth_helper.h"
-#include "../constants.h"
-#include "../jsonobjectslist.h"
+#include "../qethsc_constants.h"
+#include "../qethsc_jsonobjectslist.h"
 
 namespace QtEtherscan {
 
@@ -48,6 +48,7 @@ namespace Proxy {
 class Log
 {
 public:
+    /*! @brief Default constructor. Constructs invalid Proxy::Log object. */
     Log();
     Log(const QJsonObject& jsonObject);
     Log(const QJsonValue& jsonValue) :
@@ -115,8 +116,8 @@ inline QDebug operator<< (QDebug dbg, const Log& log)
     return dbg.maybeSpace();
 }
 
-/*! @typedef LogList src/types/proxy/eth_log.h
- *  @brief This is a list of Proxy::Log objects. Nothing more than a QList with some extra constructors (JsonObjectList). */
+/*! @typedef LogList
+ *  @brief This is a list of Proxy::Log objects. Nothing more than a QList with some extra constructors (JsonObjectsList). */
 
 typedef JsonObjectsList<Log> LogList;
 
@@ -132,4 +133,4 @@ inline QDebug operator<< (QDebug dbg, const LogList& logList)
 
 } // namespace QtEtherscan
 
-#endif // LOG_H
+#endif // QT_ETHERSCAN_ETH_LOG_H

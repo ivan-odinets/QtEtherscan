@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2024 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef ETH_TRANSACTIONHASH_H
-#define ETH_TRANSACTIONHASH_H
+#ifndef QT_ETHERSCAN_ETH_TRANSACTIONHASH_H
+#define QT_ETHERSCAN_ETH_TRANSACTIONHASH_H
 
 #include "./eth_response.h"
 
@@ -40,22 +40,22 @@ namespace Proxy {
  * @see https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendrawtransaction
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_sendrawtransaction */
 
-class TransactionHashResponse : public Response<QString>
+class TransactionHashResponse : public StringResponse
 {
 public:
     TransactionHashResponse() :
-        Response<QString>() {}
+        StringResponse() {}
     TransactionHashResponse(const QJsonObject& jsonObject) :
-        Response<QString>(jsonObject) {}
+        StringResponse(jsonObject) {}
     TransactionHashResponse(const QJsonValue& jsonValue) :
         TransactionHashResponse(jsonValue.toObject()) {}
 
-    QString transactionHash() const    { return Response<QString>::result(); }
+    QString transactionHash() const    { return StringResponse::result(); }
 };
 
 inline QDebug operator<< (QDebug dbg, const TransactionHashResponse& transactionHashResponse)
 {
-    dbg.nospace() << qUtf8Printable(QString("Proxy::BlockNumber(jsonrpc=%1; id=%2; transactionHash=%3)")
+    dbg.nospace() << qUtf8Printable(QString("Proxy::TransactionHashResponse(jsonrpc=%1; id=%2; transactionHash=%3)")
                                     .arg(transactionHashResponse.jsonRpc())
                                     .arg(transactionHashResponse.id())
                                     .arg(transactionHashResponse.transactionHash()));
@@ -67,4 +67,4 @@ inline QDebug operator<< (QDebug dbg, const TransactionHashResponse& transaction
 
 } // namespace QtEtherscan
 
-#endif // ETH_TRANSACTIONHASH_H
+#endif // QT_ETHERSCAN_ETH_TRANSACTIONHASH_H

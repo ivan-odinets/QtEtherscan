@@ -7,10 +7,10 @@ Tested using Qt 5.15.8 and 6.4.2
 
 ## Available features
 
-Currently almost all free methods from etherscan.io api are implemened.
+Currently almost all free methods and all PRO methods from etherscan.io api are implemened.
 This includes following submodules:
 - [Accounts](https://docs.etherscan.io/api-endpoints/accounts)
-- [Contracts](https://docs.etherscan.io/api-endpoints/contracts) All free methods, with the exception of 
+- [Contracts](https://docs.etherscan.io/api-endpoints/contracts) All methods, with the exception of 
   [Verify Source Code](https://docs.etherscan.io/api-endpoints/contracts#verify-source-code) and
   [Verify Proxy Contract](https://docs.etherscan.io/api-endpoints/contracts#verify-proxy-contract) methods.
 - [Transactions](https://docs.etherscan.io/api-endpoints/stats)
@@ -21,7 +21,9 @@ This includes following submodules:
 - [Gas Tracker](https://docs.etherscan.io/api-endpoints/gas-tracker)
 - [Stats](https://docs.etherscan.io/api-endpoints/stats-1)
 
-Current version: 0.0.3
+**NOTE** Although, PRO methods are implemented they are not tested yet!
+
+Current version: 0.0.4
 
 ## Adding QtEtherscan to yout project
 

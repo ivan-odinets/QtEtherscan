@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2024 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -22,12 +22,13 @@
  *
  */
 
-#ifndef ETH_TRANSACTION_H
-#define ETH_TRANSACTION_H
+#ifndef QT_ETHERSCAN_ETH_TRANSACTION_H
+#define QT_ETHERSCAN_ETH_TRANSACTION_H
 
 #include "./eth_response.h"
-#include "../constants.h"
-#include "../jsonobjectslist.h"
+#include "./eth_helper.h"
+#include "../qethsc_constants.h"
+#include "../qethsc_jsonobjectslist.h"
 
 namespace QtEtherscan {
 
@@ -49,6 +50,7 @@ namespace Proxy {
 class Transaction
 {
 public:
+    /*! @brief Default constructor. Constructs invalid Proxy::Transaction object. */
     Transaction();
     Transaction(const QJsonObject& jsonObject);
     Transaction(const QJsonValue& jsonValue);
@@ -134,7 +136,7 @@ inline QDebug operator<< (QDebug dbg, const Transaction& transaction)
 
 /*! @typedef TransactionList src/types/proxy/eth_transaction.h
  *  @brief This is a list of Proxy::Transaction objects. Nothing more than a QList with some extra constructors
- *         (JsonObjectList). */
+ *         (JsonObjectsList). */
 
 typedef JsonObjectsList<Proxy::Transaction> TransactionList;
 
@@ -146,21 +148,21 @@ inline QDebug operator<< (QDebug dbg, const TransactionList& transactionList)
     return dbg.maybeSpace();
 }
 
-/*! @typedef TransactionResponse src/types/proxy/eth_transaction.h
+/*! @class TransactionResponse src/types/proxy/eth_transaction.h
  *  @brief Object of this type is returned by API::eth_getTransactionByHash and API::eth_getTransactionByBlockNumberAndIndex
  *         methods. Data about transaction can be obtained using TransactionResponse::transaction method.
  *
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getblockbynumber */
 
-class TransactionResponse : public Response<Transaction>
+class TransactionResponse : public ObjectResponse<Transaction>
 {
 public:
     TransactionResponse() :
-        Response() {}
+        ObjectResponse() {}
     TransactionResponse(const QJsonObject& jsonObject) :
-        Response(jsonObject) {}
+        ObjectResponse(jsonObject) {}
     TransactionResponse(const QJsonValue& jsonValue) :
-        Response(jsonValue) {}
+        ObjectResponse(jsonValue) {}
 
     /*! @brief Returns Proxy::Transaction object with data about specific transaction. */
     Transaction transaction() const    { return result(); }
@@ -180,4 +182,4 @@ inline QDebug operator<< (QDebug dbg, const TransactionResponse& transactionResp
 
 } // namespace QtEtherscan
 
-#endif // ETH_TRANSACTION_H
+#endif // QT_ETHERSCAN_ETH_TRANSACTION_H

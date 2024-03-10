@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2024 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef ETH_TRANSACTIONCOUNT_H
-#define ETH_TRANSACTIONCOUNT_H
+#ifndef QT_ETHERSCAN_ETH_TRANSACTIONCOUNT_H
+#define QT_ETHERSCAN_ETH_TRANSACTIONCOUNT_H
 
 #include "./eth_response.h"
 #include "./eth_helper.h"
-#include "../constants.h"
+#include "../qethsc_constants.h"
 
 namespace QtEtherscan {
 
@@ -47,27 +47,28 @@ namespace Proxy {
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_gettransactioncount
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getblocktransactioncountbynumber */
 
-class TransactionCountResponse : public Response<qint32>
+class TransactionCountResponse : public IntResponse
 {
 public:
+    /*! @brief Default constructor. Constructs invalid TransactionCountResponse object. */
     TransactionCountResponse() :
-        Response<qint32>(InvalidTransactionCount) {}
+        IntResponse(InvalidTransactionCount) {}
     TransactionCountResponse(const QJsonObject& jsonObject, qint32 defaultValue = InvalidTransactionCount) :
-        Response<qint32>(jsonObject,defaultValue) {}
+        IntResponse(jsonObject,defaultValue) {}
     TransactionCountResponse(const QJsonValue& jsonValue) :
         TransactionCountResponse(jsonValue.toObject(),InvalidTransactionCount) {}
 
     /*! @brief Returns true if this Poxy::TransactionCountResponse object is valid and contains reasonable information.
      *         Proxy::TransactionCountResponse object is considered to be valid if transactionCount() contains anything
      *         but not -1. */
-    bool isValid() const              { return transactionCount() != InvalidTransactionCount; }
+    bool      isValid() const                    { return transactionCount() != InvalidTransactionCount; }
 
     /*! @brief This method returns integer containing transaction count. */
-    qint32 transactionCount() const         { return result(); }
+    qint32    transactionCount() const           { return result(); }
 
     /*! @brief This method returns QString containing transaction count in eth format.
      *  @see https://ethereum.org/en/developers/docs/apis/json-rpc/#hex-encoding */
-    QString transactionCountString() const  { return Helper::intToEthString(result()); }
+    QString   transactionCountString() const     { return Helper::intToEthString(result()); }
 };
 
 inline QDebug operator<< (QDebug dbg, const TransactionCountResponse& transactionCount)
@@ -84,4 +85,4 @@ inline QDebug operator<< (QDebug dbg, const TransactionCountResponse& transactio
 
 } // namespace QtEtherscan
 
-#endif // ETH_TRANSACTIONCOUNT_H
+#endif // QT_ETHERSCAN_ETH_TRANSACTIONCOUNT_H

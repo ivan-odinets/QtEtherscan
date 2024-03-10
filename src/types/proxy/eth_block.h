@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2024 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef ETH_BLOCK_H
-#define ETH_BLOCK_H
+#ifndef QT_ETHERSCAN_ETH_BLOCK_H
+#define QT_ETHERSCAN_ETH_BLOCK_H
 
 #include "./eth_transaction.h"
 #include "./eth_helper.h"
-#include "../constants.h"
+#include "../qethsc_constants.h"
 
 namespace QtEtherscan {
 
@@ -41,11 +41,12 @@ namespace Proxy {
  * @see https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getblockbyhash
  * @see https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getblockbynumber
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getblockbynumber
- * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getunclebyblocknumberandindex  */
+ * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getunclebyblocknumberandindex */
 
 class Block
 {
 public:
+    /*! @brief Default constructor. Constructs invalid Proxy::Block object. */
     Block();
     Block(const QJsonObject& jsonObject);
     Block(const QJsonValue& jsonValue) :
@@ -178,15 +179,15 @@ inline QDebug operator<< (QDebug dbg, const Block& blockNumber)
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getblockbynumber
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_getunclebyblocknumberandindex */
 
-class BlockResponse : public Response<Block>
+class BlockResponse : public ObjectResponse<Block>
 {
 public:
     BlockResponse() :
-        Response() {}
+        ObjectResponse<Block>() {}
     BlockResponse(const QJsonObject& jsonObject) :
-        Response(jsonObject) {}
+        ObjectResponse<Block>(jsonObject) {}
     BlockResponse(const QJsonValue& jsonValue) :
-        Response(jsonValue) {}
+        ObjectResponse<Block>(jsonValue) {}
 
     /*! @brief Returns Proxy::Block object with data about specific block. */
     Block     block() const  { return result(); }

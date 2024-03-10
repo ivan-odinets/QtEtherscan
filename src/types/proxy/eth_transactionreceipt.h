@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  *
  * QtEtherscan
- * Copyright (C) 2022-2024 Ivan Odinets
+ * Copyright (C) 2022-2024 Ivan Odinets <i_odinets@protonmail.com>
  *
  * This file is part of QtEtherscan
  *
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef ETH_TRANSACTIONRECEIPT_H
-#define ETH_TRANSACTIONRECEIPT_H
+#ifndef QT_ETHERSCAN_ETH_TRANSACTIONRECEIPT_H
+#define QT_ETHERSCAN_ETH_TRANSACTIONRECEIPT_H
 
 #include "./eth_response.h"
 #include "./eth_log.h"
-#include "../constants.h"
+#include "../qethsc_constants.h"
 
 namespace QtEtherscan {
 
@@ -44,6 +44,7 @@ namespace Proxy {
 class TransactionReceipt
 {
 public:
+    /*! @brief Default constructor. Constructs invalid TransactionReceipt object. */
     TransactionReceipt();
     TransactionReceipt(const QJsonObject& jsonObject);
     TransactionReceipt(const QJsonValue& jsonValue) :
@@ -137,19 +138,19 @@ inline QDebug operator<< (QDebug dbg, const TransactionReceipt& transactionRecei
     return dbg.maybeSpace();
 }
 
-/*! @typedef TransactionReceiptResponse src/types/proxy/eth_transactionreceipt.h
+/*! @class TransactionReceiptResponse src/types/proxy/eth_transactionreceipt.h
  *  @brief Object of this type is returned by API::eth_getTransactionReceipt method. Data about transaction receipt can
  *         be obtained using TransactionReceiptResponse::transactionReceipt method.
  *
  * @see https://docs.etherscan.io/api-endpoints/geth-parity-proxy#eth_gettransactionreceipt */
 
-class TransactionReceiptResponse : public Response<TransactionReceipt>
+class TransactionReceiptResponse : public ObjectResponse<TransactionReceipt>
 {
 public:
     TransactionReceiptResponse() :
-        Response<TransactionReceipt>() {}
+        ObjectResponse<TransactionReceipt>() {}
     TransactionReceiptResponse(const QJsonObject& jsonObject) :
-        Response<TransactionReceipt>(jsonObject) {}
+        ObjectResponse<TransactionReceipt>(jsonObject) {}
     TransactionReceiptResponse(const QJsonValue& jsonValue) :
         TransactionReceiptResponse(jsonValue.toObject()) {}
 
@@ -171,4 +172,4 @@ inline QDebug operator<< (QDebug dbg, const TransactionReceiptResponse& transact
 
 } // namespace QtEtherscan
 
-#endif // ETH_TRANSACTIONRECEIPT_H
+#endif // QT_ETHERSCAN_ETH_TRANSACTIONRECEIPT_H
