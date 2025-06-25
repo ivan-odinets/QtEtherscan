@@ -131,6 +131,9 @@ public:
      *  @param QString newApiKey*/
     void           setApiKey(const QString& newApiKey)     { m_apiKey = newApiKey; }
 
+    /*! @brief This method returns API token being used by this QtEtherscan::API object. */
+    QString        apiKey() const                          { return m_apiKey; }
+
     /*! @brief This method can be used to configure proxy, through which communication with etherscan servers will be done
      *  @param QNetworkProxy newProxy - new proxy configuration */
     void           setProxy(const QNetworkProxy& newProxy) { m_net.setProxy(newProxy); }
